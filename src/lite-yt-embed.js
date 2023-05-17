@@ -28,7 +28,7 @@ class LiteYTEmbed extends HTMLElement {
          * TODO: Consider using webp if supported, falling back to jpg
          */
         if (!this.style.backgroundImage) {
-          this.style.backgroundImage = `url("https://i.ytimg.com/vi/${this.videoId}/hqdefault.jpg")`;
+            this.style.backgroundImage = `url("https://i.ytimg.com/vi/${this.videoId}/hqdefault.jpg")`;
         }
 
         // Set up play button, and its visually hidden label
@@ -47,7 +47,7 @@ class LiteYTEmbed extends HTMLElement {
         playBtnEl.removeAttribute('href');
 
         // On hover (or tap), warm up the TCP connections we're (likely) about to use.
-        this.addEventListener('pointerover', LiteYTEmbed.warmConnections, {once: true});
+        this.addEventListener('pointerover', LiteYTEmbed.warmConnections, { once: true });
 
         // Once the user clicks, add the real iframe and drop our play button
         // TODO: In the future we could be like amp-youtube and silently swap in the iframe during idle time
@@ -105,7 +105,7 @@ class LiteYTEmbed extends HTMLElement {
             var el = document.createElement('script');
             el.src = 'https://www.youtube.com/iframe_api';
             el.async = true;
-            el.onload = _ => {
+            el.onload = (_) => {
                 YT.ready(res);
             };
             el.onerror = rej;
@@ -117,7 +117,7 @@ class LiteYTEmbed extends HTMLElement {
         this.fetchYTPlayerApi();
         await this.ytApiPromise;
 
-        const videoPlaceholderEl = document.createElement('div')
+        const videoPlaceholderEl = document.createElement('div');
         this.append(videoPlaceholderEl);
 
         const paramsObj = Object.fromEntries(params.entries());
@@ -127,14 +127,14 @@ class LiteYTEmbed extends HTMLElement {
             videoId: this.videoId,
             playerVars: paramsObj,
             events: {
-                'onReady': event => {
+                onReady: (event) => {
                     event.target.playVideo();
                 }
             }
         });
     }
 
-    async addIframe(){
+    async addIframe() {
         if (this.classList.contains('lyt-activated')) return;
         this.classList.add('lyt-activated');
 
@@ -155,7 +155,9 @@ class LiteYTEmbed extends HTMLElement {
         iframeEl.allowFullscreen = true;
         // AFAIK, the encoding here isn't necessary for XSS, but we'll do it only because this is a URL
         // https://stackoverflow.com/q/64959723/89484
-        iframeEl.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(this.videoId)}?${params.toString()}`;
+        iframeEl.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(
+            this.videoId
+        )}?${params.toString()}`;
         this.append(iframeEl);
 
         // Set focus for a11y
