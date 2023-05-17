@@ -11,25 +11,15 @@
  *   https://github.com/vb/lazyframe
  */
 class LiteYTEmbed extends HTMLElement {
-    connectedCallback() {
+    async connectedCallback() {
         this.videoId = this.getAttribute('videoid');
 
         let playBtnEl = this.querySelector('.lty-playbtn');
         // A label for the button takes priority over a [playlabel] attribute on the custom-element
         this.playLabel = (playBtnEl && playBtnEl.textContent.trim()) || this.getAttribute('playlabel') || 'Play';
 
-        /**
-         * Lo, the youtube placeholder image!  (aka the thumbnail, poster image, etc)
-         *
-         * See https://github.com/paulirish/lite-youtube-embed/blob/master/youtube-thumbnail-urls.md
-         *
-         * TODO: Do the sddefault->hqdefault fallback
-         *       - When doing this, apply referrerpolicy (https://github.com/ampproject/amphtml/pull/3940)
-         * TODO: Consider using webp if supported, falling back to jpg
-         */
-        if (!this.style.backgroundImage) {
-            this.style.backgroundImage = `url("https://i.ytimg.com/vi/${this.videoId}/hqdefault.jpg")`;
-        }
+        // Add preview image
+        await this.addPreview();
 
         // Set up play button, and its visually hidden label
         if (!playBtnEl) {
@@ -113,6 +103,92 @@ class LiteYTEmbed extends HTMLElement {
         });
     }
 
+    /**
+     * Adds placeholder/preview image
+     * [mq]default - 320x180
+     * [hq]default - 480x360
+     * [sd]default - 640x480
+     * [maxres]default - 1280x720
+     */
+    async addPreview() {
+        if (this.querySelector('.lty-preview-container')) {
+            // Preview was added manually
+            return;
+        }
+
+        // TODO: Add an option that would check in background if an image of selected size exists and use fallbacks
+        this.preview = this.getAttribute('preview') || 'hq';
+
+        // Detect preview dimensions
+        let width, height;
+        switch (this.preview) {
+            case 'mq':
+                width = 320;
+                height = 180;
+                break;
+            case 'hq':
+                width = 480;
+                height = 360;
+                break;
+            case 'sd':
+                width = 640;
+                height = 480;
+                break;
+            case 'maxres':
+                width = 1280;
+                height = 720;
+                break;
+            default:
+                // anything else is treated as incorrect value
+                return;
+        }
+
+        // Custom jpg preview
+        this.jpg = this.getAttribute('jpg');
+
+        /**
+         * Webp:
+         * [yes] - default YouTube image
+         * [no] - if YouTube has no preview for this video
+         * Anything else is treated like a custom image
+         */
+        // TODO: Add an option that would check in background if WebP exists instead of manual toggle
+        this.webp = this.getAttribute('webp') || 'yes';
+
+        const picture = document.createElement('picture');
+        picture.className = 'lty-preview-container';
+
+        if (this.webp !== 'no') {
+            const source = document.createElement('source');
+            source.setAttribute('type', 'image/webp');
+            source.setAttribute(
+                'srcset',
+                this.webp === 'yes'
+                    ? `https://i.ytimg.com/vi_webp/${this.videoId}/${this.preview}default.webp`
+                    : this.webp
+            );
+            picture.appendChild(source);
+        }
+
+        const img = document.createElement('img');
+        img.setAttribute('decoding', 'async');
+        img.setAttribute('loading', 'lazy');
+        if (width && height) {
+            img.setAttribute('width', width);
+            img.setAttribute('height', height);
+        }
+        img.setAttribute(
+            'src',
+            this.jpg ? this.jpg : `https://i.ytimg.com/vi/${this.videoId}/${this.preview}default.jpg`
+        );
+        img.setAttribute('alt', this.playLabel);
+        img.setAttribute('title', this.playLabel);
+        img.className = 'lty-preview';
+        picture.appendChild(img);
+
+        this.insertBefore(picture, this.firstChild);
+    }
+
     async addYTPlayerIframe(params) {
         this.fetchYTPlayerApi();
         await this.ytApiPromise;
@@ -155,9 +231,7 @@ class LiteYTEmbed extends HTMLElement {
         iframeEl.allowFullscreen = true;
         // AFAIK, the encoding here isn't necessary for XSS, but we'll do it only because this is a URL
         // https://stackoverflow.com/q/64959723/89484
-        iframeEl.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(
-            this.videoId
-        )}?${params.toString()}`;
+        iframeEl.src = `https://www.youtube-nocookie.com/embed/${this.videoId}?${params.toString()}`;
         this.append(iframeEl);
 
         // Set focus for a11y
