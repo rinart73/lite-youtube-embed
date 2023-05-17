@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>lite-youtube-embed - custom-poster-image</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../src/lite-yt-embed.css" />
+</head>
+<body>
+<h1>global config</h1>
+<p>Global configuration that allows to set default value for all videos on the page.</p>
+
+<script>
+var LiteYTEmbedConfig = {
+    params: 'controls=0',
+    webp: 'no',
+    preview: 'maxres'
+};
+</script>
+
+<h2>Follows default global config</h2>
+<p><lite-youtube videoid="ogfYd705cRs"></lite-youtube></p>
+
+<h2>Partially overrides default global config</h2>
+<p><lite-youtube videoid="ogfYd705cRs" webp="yes" preview="hq"></lite-youtube></p>
+
+
+<script src="../src/lite-yt-embed.js"></script>
+
+</body>
+</html>
+

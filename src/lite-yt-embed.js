@@ -12,6 +12,9 @@
  */
 class LiteYTEmbed extends HTMLElement {
     async connectedCallback() {
+        // init global config object if it doesn't exist
+        window.LiteYTEmbedConfig = window.LiteYTEmbedConfig || {};
+
         this.videoId = this.getAttribute('videoid');
 
         let playBtnEl = this.querySelector('.lty-playbtn');
@@ -117,7 +120,7 @@ class LiteYTEmbed extends HTMLElement {
         }
 
         // TODO: Add an option that would check in background if an image of selected size exists and use fallbacks
-        this.preview = this.getAttribute('preview') || 'hq';
+        this.preview = this.getAttribute('preview') || window.LiteYTEmbedConfig.preview || 'hq';
 
         // Detect preview dimensions
         let width, height;
@@ -153,7 +156,7 @@ class LiteYTEmbed extends HTMLElement {
          * Anything else is treated like a custom image
          */
         // TODO: Add an option that would check in background if WebP exists instead of manual toggle
-        this.webp = this.getAttribute('webp') || 'yes';
+        this.webp = this.getAttribute('webp') || window.LiteYTEmbedConfig.webp || 'yes';
 
         const picture = document.createElement('picture');
         picture.className = 'lty-preview-container';
@@ -214,7 +217,7 @@ class LiteYTEmbed extends HTMLElement {
         if (this.classList.contains('lyt-activated')) return;
         this.classList.add('lyt-activated');
 
-        const params = new URLSearchParams(this.getAttribute('params') || []);
+        const params = new URLSearchParams(this.getAttribute('params') || window.LiteYTEmbedConfig.params || '');
         params.append('autoplay', '1');
         params.append('playsinline', '1');
 
