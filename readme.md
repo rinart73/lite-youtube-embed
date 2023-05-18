@@ -16,7 +16,7 @@ Demo: https://rinart73.github.io/lite-youtube-embed/
 ## Basic usage
 
 > **Note**
-> This is a **fork**, so you'll have to download this repo and use the `src/` folder for uncompressed or `dist/` for compressed files. `lite-youtube-embed` npm package belongs to the original author.
+> This is a **fork**, so you'll have to download the files from the `dist/` folder. `lite-youtube-embed` npm package belongs to the original author.
 
 To use the custom element you will need to:
 

@@ -4,7 +4,7 @@
   <title>lite-youtube-embed - progressively enhanced</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="../src/lite-yt-embed.css" />
+  <link rel="stylesheet" href="../dist/lite-yt-embed.min.css" />
 </head>
 <body>
 <h1>Progressively Enhanced</h1>
@@ -21,7 +21,7 @@
 // artificial delay somewhat simulates a script[defer]
 setTimeout(_ => {
   const elem = document.createElement('script');
-  elem.src = '../src/lite-yt-embed.js';
+  elem.src = '../dist/lite-yt-embed.min.js';
   document.head.append(elem);
 
   document.querySelector('#done').textContent = 'Script complete.'

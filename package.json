@@ -25,5 +25,16 @@
     "package.json",
     "package-lock.json",
     "readme.md"
-  ]
+  ],
+  "devDependencies": {
+    "cssnano": "^6.0.1",
+    "globby": "^13.1.4",
+    "uglify-js": "^3.17.4"
+  },
+  "scripts": {
+    "cleanup": "node ./scripts/cleanup.mjs",
+    "css": "node ./scripts/process-css.mjs",
+    "js": "node ./scripts/process-js.mjs",
+    "build": "npm run cleanup && npm run css && npm run js"
+  }
 }
