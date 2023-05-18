@@ -14,7 +14,9 @@
 var LiteYTEmbedConfig = {
     params: 'controls=0',
     webp: 'no',
-    size: 'maxres'
+    size: 'maxres',
+    playLabel: 'Test 1234',
+    showTitle: true
 };
 </pre>
 
@@ -22,7 +24,9 @@ var LiteYTEmbedConfig = {
 var LiteYTEmbedConfig = {
     params: 'controls=0',
     webp: 'no',
-    size: 'maxres'
+    size: 'maxres',
+    playLabel: 'Test 1234',
+    showTitle: 'yes'
 };
 </script>
 
@@ -30,7 +34,7 @@ var LiteYTEmbedConfig = {
 <p><lite-youtube videoid="ogfYd705cRs"></lite-youtube></p>
 
 <h2>Partially overrides default global config</h2>
-<p><lite-youtube videoid="ogfYd705cRs" webp="yes" size="hq"></lite-youtube></p>
+<p><lite-youtube videoid="ogfYd705cRs" webp="yes" size="hq" playlabel="Overridden label"></lite-youtube></p>
 
 
 <script src="../dist/lite-yt-embed.min.js"></script>

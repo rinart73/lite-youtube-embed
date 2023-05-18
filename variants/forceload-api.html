@@ -47,7 +47,6 @@ var LiteYTEmbedConfig = {
     document.querySelector('#btn-pause').addEventListener('click', () => {
         if(!liteYouTube.api) return;
 
-        console.log(liteYouTube.api);
         liteYouTube.api.pauseVideo();
     })
     document.querySelector('#btn-stop').addEventListener('click', () => {

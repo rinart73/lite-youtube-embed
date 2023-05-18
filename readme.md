@@ -46,8 +46,7 @@ YouTube supports a variety of [player parameters](https://developers.google.com/
 These may be applied by using the `params` attribute.
 
 ```html
-<!-- Example to show a video player without controls, starting at 10s in, ending at 20s,
-     with modest branding *and* enabling the JS API -->
+<!-- Example to show a video player without controls, starting at 10s in, ending at 20s, with modest branding *and* enabling the JS API -->
 <lite-youtube videoid="ogfYd705cRs" params="controls=0&start=10&end=30&modestbranding=2&rel=0&enablejsapi=1"></lite-youtube>
 ```
 
@@ -75,7 +74,7 @@ Demo: https://rinart73.github.io/lite-youtube-embed/variants/pe.html
 
 ## Show title
 
-Show video playlabel in the top left corner like YouTube does.
+Show video `playlabel` in the top left corner like YouTube does.
 ```html
 <lite-youtube videoid="ogfYd705cRs" playlabel="Keynote (Google I/O '18)" showtitle="yes"></lite-youtube>
 ```
@@ -120,18 +119,23 @@ You can set the following default values that will apply to all videos unless ov
 
 ```js
 var LiteYTEmbedConfig = {
-    // if true, will force-load YouTube API
-    forceApi: true,
-    size: 'maxres',
-    /**
-     * 'yes' - tries to enable WebP
-     * 'no' - disables WebP
-     * Other value - acts like a custom WebP poster
-     */
-    webp: 'no',
-    // if true, will try to use fallback posters
-    useFallback: true,
-    params: 'controls=0'
+  // default title and label for play button
+  playLabel: 'Play',
+  // display title in top left corner
+  showTitle: 'yes', // 'no'
+  // YouTube poster size
+  size: 'maxres',
+  /**
+   * 'yes' - tries to enable WebP
+   * 'no' - disables WebP
+   * Other value - acts like a custom WebP poster
+   */
+  webp: 'no',
+  // if true, will try to use fallback posters
+  useFallback: true,
+  params: 'controls=0',
+  // if true, will force-load YouTube API
+  forceApi: true  
 };
 ```
 
@@ -151,7 +155,7 @@ The overall speed of this method depends on the amount of tries it will take to 
 ```html
 <script>
 var LiteYTEmbedConfig = {
-    useFallback: true
+  useFallback: true
 };
 </script>
 
@@ -167,7 +171,7 @@ You can make so YouTube API will be force-loaded no matter the browser after a u
 ```html
 <script>
 var LiteYTEmbedConfig = {
-    forceAPI: true
+  forceAPI: true
 };
 </script>
 
