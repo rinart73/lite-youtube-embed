@@ -21,6 +21,17 @@ class LiteYTEmbed extends HTMLElement {
         // A label for the button takes priority over a [playlabel] attribute on the custom-element
         this.playLabel = (playBtnEl && playBtnEl.textContent.trim()) || this.getAttribute('playlabel') || 'Play';
 
+        this.showTitle = this.getAttribute('showtitle') || window.LiteYTEmbedConfig.showTitle || 'no';
+        if (this.showTitle === 'yes') {
+            let titleEl = this.querySelector('.lty-title');
+            if (!titleEl) {
+                titleEl = document.createElement('div');
+                titleEl.className = 'lty-title';
+                this.append(titleEl);
+            }
+            titleEl.innerHTML = `<span>${this.playLabel}</span>`;
+        }
+
         // Add preview image
         this.addPreview();
 

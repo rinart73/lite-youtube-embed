@@ -69,6 +69,13 @@ Use this as your HTML, load the script asynchronously, and let the JS progressiv
 
 Demo: https://rinart73.github.io/lite-youtube-embed/variants/pe.html
 
+## Show title
+
+Show video playlabel in the top left corner like YouTube does.
+```html
+<lite-youtube videoid="ogfYd705cRs" playlabel="Keynote (Google I/O '18)" showtitle="yes"></lite-youtube>
+```
+
 ## Change poster size (resolution)
 
 You can use the following values as the `size` atribute to set video poster size.
