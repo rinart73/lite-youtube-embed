@@ -15,7 +15,7 @@ class LiteYTEmbed extends HTMLElement {
         // init global config object if it doesn't exist
         window.LiteYTEmbedConfig = window.LiteYTEmbedConfig || {};
 
-        this.videoId = encodeURIComponent(this.getAttribute('videoid'));
+        this.videoId = this.getAttribute('videoid');
 
         let playBtnEl = this.querySelector('.lty-playbtn');
         // A label for the button takes priority over a [playlabel] attribute on the custom-element
@@ -330,8 +330,6 @@ class LiteYTEmbed extends HTMLElement {
         iframeEl.title = this.playLabel;
         iframeEl.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture';
         iframeEl.allowFullscreen = true;
-        // AFAIK, the encoding here isn't necessary for XSS, but we'll do it only because this is a URL
-        // https://stackoverflow.com/q/64959723/89484
         iframeEl.src = `https://www.youtube-nocookie.com/embed/${this.videoId}?${params.toString()}`;
         this.append(iframeEl);
 
