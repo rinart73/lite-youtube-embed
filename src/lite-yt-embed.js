@@ -53,7 +53,9 @@ class LiteYTEmbed extends HTMLElement {
         // TODO: Try loading the the YT API in parallel with our iframe and then attaching/playing it. #82
         // API can be force-loaded via config
         this.needsYTApiForAutoplay =
-            window.LiteYTEmbedConfig.api || navigator.vendor.includes('Apple') || navigator.userAgent.includes('Mobi');
+            window.LiteYTEmbedConfig.forceApi ||
+            navigator.vendor.includes('Apple') ||
+            navigator.userAgent.includes('Mobi');
     }
 
     /**

@@ -5,7 +5,7 @@
 Provide videos with a supercharged focus on visual performance.
 This custom element renders just like the real thing but approximately 224× faster.
 
-Demo: https://paulirish.github.io/lite-youtube-embed/
+Demo: https://rinart73.github.io/lite-youtube-embed/
 
 ## Comparison
 
@@ -15,14 +15,15 @@ Demo: https://paulirish.github.io/lite-youtube-embed/
 
 ## Basic usage
 
-Use the [`lite-youtube-embed` npm package](https://www.npmjs.com/package/lite-youtube-embed) or download from this repo and use `src/`.
+> **Note**
+> This is a **fork**, so you'll have to download this repo and use the `src/` folder for uncompressed or `dist/` for compressed files. `lite-youtube-embed` npm package belongs to the original author.
 
 To use the custom element you will need to:
 
 1. Include the stylesheet within your application
-1. Include the script as well
-1. Use the `lite-youtube` tag via HTML or JS.
-1. Be happy that you're providing a better user experience to your visitors
+2. Include the script as well
+3. Use the `lite-youtube` tag via HTML or JS.
+4. Be happy that you're providing a better user experience to your visitors
 
 ```html
 <!-- Include the CSS & JS.. (This could be direct from the package or bundled) -->
@@ -52,7 +53,7 @@ These may be applied by using the `params` attribute.
 
 Note that lite-youtube uses `autoplay=1` by default.
 
-Demo: https://paulirish.github.io/lite-youtube-embed/variants/params.html
+Demo: https://rinart73.github.io/lite-youtube-embed/variants/params.html
 
 ## Pro-usage: load w/ JS deferred (aka progressive enhancement)
 
@@ -66,16 +67,114 @@ Use this as your HTML, load the script asynchronously, and let the JS progressiv
 </lite-youtube>
 ```
 
-Demo: https://paulirish.github.io/lite-youtube-embed/variants/pe.html
+Demo: https://rinart73.github.io/lite-youtube-embed/variants/pe.html
+
+## Change poster size (resolution)
+
+You can use the following values as the `size` atribute to set video poster size.
+
+* mq - 320x180
+* hq (default) - 480x360
+* sd - 640x480
+* maxres - 1280x720
+
+Keep in mind that some videos might now have a high-resolution version of a poster and will instead display default YouTube gray poster.
+```html
+<lite-youtube videoid="ogfYd705cRs" size="maxres"></lite-youtube>
+```
+
+Demo: https://rinart73.github.io/lite-youtube-embed/variants/custom-poster-size.html
 
 ## Custom poster image
 
-If you want to provide a custom poster image, just set it as the background-image, and lite-yt will not overwrite it:
+If you want to provide a custom poster image set the `jpg` and `webp` attributes:
 ```html
-<lite-youtube videoid="ogfYd705cRs" style="background-image: url('https://i.ytimg.com/vi/ogfYd705cRs/hqdefault.jpg');"></lite-youtube>
+<lite-youtube videoid="ogfYd705cRs" jpg="https://example.com/my-custom-poster.jpg" webp="https://example.com/my-custom-poster.webp"></lite-youtube>
 ```
 
-Demo: https://paulirish.github.io/lite-youtube-embed/variants/custom-poster-image.html
+Demo: https://rinart73.github.io/lite-youtube-embed/variants/custom-poster-image.html
+
+## Disable WebP
+
+Setting `webp` attribute to `no` will disable it for the video:
+```html
+<lite-youtube videoid="ogfYd705cRs" jpg="https://example.com/my-custom-poster.jpg" webp="no"></lite-youtube>
+```
+
+Demo: https://rinart73.github.io/lite-youtube-embed/variants/no-webp.html
+
+## Global config
+
+You can set the following default values that will apply to all videos unless overridden in the `lite-youtube` tag:
+
+```js
+var LiteYTEmbedConfig = {
+    // if true, will force-load YouTube API
+    forceApi: true,
+    size: 'maxres',
+    /**
+     * 'yes' - tries to enable WebP
+     * 'no' - disables WebP
+     * Other value - acts like a custom WebP poster
+     */
+    webp: 'no',
+    // if true, will try to use fallback posters
+    useFallback: true,
+    params: 'controls=0'
+};
+```
+
+Demo: https://rinart73.github.io/lite-youtube-embed/variants/global-config.html
+
+## Fallback poster
+
+You can opt-in for a fallback mechanism that will try to find a working poster.
+
+1. First it will try your custom poster if defined.
+2. Then high resolution YouTube default poster.
+3. Thenit will downgrade it's size until it reaches 'hq' WebP.
+4. Then it falls back to JPG.
+
+The overall speed of this method depends on the amount of tries it will take to find a working poster. YouTube can be quite slow for some reason when you ask it for non-existing images.
+
+```html
+<script>
+var LiteYTEmbedConfig = {
+    useFallback: true
+};
+</script>
+
+<lite-youtube videoid="pULNqYm4_uk" size="maxres"></lite-youtube>
+```
+
+Demo: https://rinart73.github.io/lite-youtube-embed/variants/fallback-poster.html
+
+## Forceload API
+
+You can make so YouTube API will be force-loaded no matter the browser after a user click any video. Then you can manipulate the video (start, pause, stop, change time etc).
+
+```html
+<script>
+var LiteYTEmbedConfig = {
+    forceAPI: true
+};
+</script>
+
+<lite-youtube videoid="ogfYd705cRs"></lite-youtube>
+
+<button id="btn-pause">Pause</button>
+
+<script>
+  document.querySelector('#btn-pause').addEventListener('click', () => {
+    const liteYoutube = document.querySelector('lite-youtube');
+    if(liteYouTube.api) {
+      liteYouTube.api.pauseVideo();
+    }
+  })
+</script>
+```
+
+Demo: https://rinart73.github.io/lite-youtube-embed/variants/forceload-api.html
 
 ## Other fast YouTube embeds
 
