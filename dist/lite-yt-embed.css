@@ -42,12 +42,12 @@ lite-youtube::after {
   height: 100%;
   display: flex;
   z-index: 0;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.2s cubic-bezier(0, 0, 0.2, 1);
 }
 
-.lyt-poster-loaded > .lyt-poster-container {
-  opacity: 1;
+.lyt-poster-hidden > .lyt-poster-container {
+  opacity: 0;
 }
 
 .lyt-poster {

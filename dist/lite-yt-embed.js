@@ -165,8 +165,12 @@ class LiteYTEmbed extends HTMLElement {
         this.poster.setAttribute('title', this.playLabel);
         this.poster.className = 'lyt-poster';
         if ((_c = window.LiteYTEmbedConfig) === null || _c === void 0 ? void 0 : _c.useFallback) {
+            this.classList.add('lyt-poster-hidden');
             this.onPosterLoad = this.onPosterLoad.bind(this);
             this.onPosterError = this.onPosterError.bind(this);
+            if (this.poster.complete) {
+                this.onPosterLoad();
+            }
             this.poster.addEventListener('load', this.onPosterLoad);
             this.poster.addEventListener('error', this.onPosterError);
         }
@@ -221,7 +225,7 @@ class LiteYTEmbed extends HTMLElement {
             this.onPosterError();
             return;
         }
-        this.classList.add('lyt-poster-loaded');
+        this.classList.remove('lyt-poster-hidden');
     }
     onPosterError() {
         var _a, _b, _c;
