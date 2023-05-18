@@ -1,5 +1,5 @@
 /// <reference types="youtube" />
-export interface LiteYTEmbedConfig {
+interface LiteYTEmbedConfig {
     playLabel?: string;
     showTitle?: string;
     size?: string;
@@ -8,16 +8,14 @@ export interface LiteYTEmbedConfig {
     params?: string;
     forceApi?: boolean;
 }
-declare global {
-    interface Window {
-        LiteYTEmbedConfig?: LiteYTEmbedConfig;
-        YT?: typeof YT & {
-            ready(callback: (value: unknown) => void): void;
-        };
-    }
-    interface HTMLIFrameElement {
-        fetchPriority: 'high' | 'low' | 'auto';
-    }
+interface Window {
+    LiteYTEmbedConfig?: LiteYTEmbedConfig;
+    YT?: typeof YT & {
+        ready(callback: (value: unknown) => void): void;
+    };
+}
+interface HTMLIFrameElement {
+    fetchPriority: 'high' | 'low' | 'auto';
 }
 /**
  * A lightweight youtube embed. Still should feel the same to the user, just MUCH faster to initialize and paint.
@@ -77,4 +75,3 @@ declare class LiteYTEmbed extends HTMLElement {
      */
     private fetchYTPlayerApi;
 }
-export { type LiteYTEmbed };

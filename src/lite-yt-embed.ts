@@ -1,4 +1,4 @@
-export interface LiteYTEmbedConfig {
+interface LiteYTEmbedConfig {
   playLabel?: string;
   showTitle?: string;
   size?: string;
@@ -8,17 +8,15 @@ export interface LiteYTEmbedConfig {
   forceApi?: boolean;
 }
 
-declare global {
-  interface Window {
-    LiteYTEmbedConfig?: LiteYTEmbedConfig;
-    YT?: typeof YT & {
-      ready(callback: (value: unknown) => void): void;
-    };
-  }
+interface Window {
+  LiteYTEmbedConfig?: LiteYTEmbedConfig;
+  YT?: typeof YT & {
+    ready(callback: (value: unknown) => void): void;
+  };
+}
 
-  interface HTMLIFrameElement {
-    fetchPriority: 'high' | 'low' | 'auto';
-  }
+interface HTMLIFrameElement {
+  fetchPriority: 'high' | 'low' | 'auto';
 }
 
 /**
@@ -409,7 +407,5 @@ class LiteYTEmbed extends HTMLElement {
     });
   }
 }
-
-export { type LiteYTEmbed };
 
 customElements.define('lite-youtube', LiteYTEmbed);
