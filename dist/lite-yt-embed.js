@@ -311,6 +311,7 @@ class LiteYTEmbed extends HTMLElement {
 
         new YT.Player(videoPlaceholderEl, {
             width: '100%',
+            host: 'https://www.youtube-nocookie.com',
             videoId: this.videoId,
             playerVars: paramsObj,
             events: {
