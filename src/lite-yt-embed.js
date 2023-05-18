@@ -11,7 +11,7 @@
  *   https://github.com/vb/lazyframe
  */
 class LiteYTEmbed extends HTMLElement {
-    async connectedCallback() {
+    connectedCallback() {
         // init global config object if it doesn't exist
         window.LiteYTEmbedConfig = window.LiteYTEmbedConfig || {};
 
@@ -22,7 +22,7 @@ class LiteYTEmbed extends HTMLElement {
         this.playLabel = (playBtnEl && playBtnEl.textContent.trim()) || this.getAttribute('playlabel') || 'Play';
 
         // Add preview image
-        await this.addPreview();
+        this.addPreview();
 
         // Set up play button, and its visually hidden label
         if (!playBtnEl) {
@@ -91,6 +91,16 @@ class LiteYTEmbed extends HTMLElement {
         LiteYTEmbed.preconnected = true;
     }
 
+    static checkWebPSupport() {
+        const elem = document.createElement('canvas');
+
+        if (!!(elem.getContext && elem.getContext('2d'))) {
+            return elem.toDataURL('image/webp').indexOf('data:image/webp') == 0;
+        }
+
+        return false;
+    }
+
     fetchYTPlayerApi() {
         if (window.YT || (window.YT && window.YT.Player)) return;
 
@@ -113,7 +123,7 @@ class LiteYTEmbed extends HTMLElement {
      * [sd]default - 640x480
      * [maxres]default - 1280x720
      */
-    async addPreview() {
+    addPreview() {
         if (this.querySelector('.lty-preview-container')) {
             // Preview was added manually
             return;
@@ -129,10 +139,18 @@ class LiteYTEmbed extends HTMLElement {
         /**
          * Webp:
          * [yes] - default YouTube image
-         * [no] - if YouTube has no preview for this video
+         * [no] - typically used if YouTube has no preview for this video
          * Anything else is treated like a custom image
          */
         this.webp = this.getAttribute('webp') || window.LiteYTEmbedConfig.webp || 'yes';
+
+        // Check if browser supports WebP
+        if (LiteYTEmbed.supportsWebP === undefined) {
+            LiteYTEmbed.supportsWebP = LiteYTEmbed.checkWebPSupport();
+        }
+        if (!LiteYTEmbed.supportsWebP) {
+            this.webp = 'no';
+        }
 
         this.previewContainer = document.createElement('picture');
         this.previewContainer.className = 'lty-preview-container';
