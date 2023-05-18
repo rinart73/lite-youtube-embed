@@ -15,7 +15,7 @@ class LiteYTEmbed extends HTMLElement {
         // init global config object if it doesn't exist
         window.LiteYTEmbedConfig = window.LiteYTEmbedConfig || {};
 
-        this.videoId = this.getAttribute('videoid');
+        this.videoId = encodeURIComponent(this.getAttribute('videoid'));
 
         let playBtnEl = this.querySelector('.lty-playbtn');
         // A label for the button takes priority over a [playlabel] attribute on the custom-element
