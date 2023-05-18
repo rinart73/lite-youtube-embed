@@ -3,12 +3,6 @@
   "version": "0.2.0",
   "description": "A faster youtube embed.",
   "license": "Apache-2.0",
-  "type": "module",
-  "exports": {
-    ".": {
-      "require": "./dist/lite-yt-embed.js"
-    }
-  },
   "main": "./dist/lite-yt-embed.js",
   "types": "./dist/lite-yt-embed.d.ts",
   "style": "./dist/lite-yt-embed.css",

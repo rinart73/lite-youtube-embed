@@ -403,4 +403,6 @@ class LiteYTEmbed extends HTMLElement {
   }
 }
 
+export { type LiteYTEmbed };
+
 customElements.define('lite-youtube', LiteYTEmbed);
