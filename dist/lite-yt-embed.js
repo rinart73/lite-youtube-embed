@@ -39,7 +39,7 @@ class LiteYTEmbed extends HTMLElement {
         if (!playBtnEl) {
             playBtnEl = document.createElement('button');
             playBtnEl.type = 'button';
-            playBtnEl.classList.add('lty-playbtn');
+            playBtnEl.className = 'lty-playbtn';
             this.append(playBtnEl);
         }
         if (!playBtnEl.textContent) {
@@ -49,6 +49,7 @@ class LiteYTEmbed extends HTMLElement {
             playBtnEl.append(playBtnLabelEl);
         }
         playBtnEl.removeAttribute('href');
+        playBtnEl.removeAttribute('target');
 
         // On hover (or tap), warm up the TCP connections we're (likely) about to use.
         this.addEventListener('pointerover', LiteYTEmbed.warmConnections, { once: true });
