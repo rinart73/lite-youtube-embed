@@ -119,10 +119,142 @@ class LiteYTEmbed extends HTMLElement {
             return;
         }
 
-        // TODO: Add an option that would check in background if an image of selected size exists and use fallbacks
         this.preview = this.getAttribute('preview') || window.LiteYTEmbedConfig.preview || 'hq';
+        // validate preview size
+        if (!['mq', 'hq', 'sd', 'maxres'].includes(this.preview)) return;
 
-        // Detect preview dimensions
+        // Custom jpg preview
+        this.jpg = this.getAttribute('jpg');
+
+        /**
+         * Webp:
+         * [yes] - default YouTube image
+         * [no] - if YouTube has no preview for this video
+         * Anything else is treated like a custom image
+         */
+        this.webp = this.getAttribute('webp') || window.LiteYTEmbedConfig.webp || 'yes';
+
+        this.previewContainer = document.createElement('picture');
+        this.previewContainer.className = 'lty-preview-container';
+
+        if (this.webp !== 'no') {
+            const source = document.createElement('source');
+            source.setAttribute('type', 'image/webp');
+            source.setAttribute(
+                'srcset',
+                this.webp === 'yes'
+                    ? `https://i.ytimg.com/vi_webp/${this.videoId}/${this.preview}default.webp`
+                    : this.webp
+            );
+            this.previewContainer.appendChild(source);
+        }
+
+        this.previewImage = document.createElement('img');
+        this.previewImage.setAttribute('decoding', 'async');
+        this.previewImage.setAttribute('loading', 'lazy');
+
+        this.setImageDimensions();
+
+        this.previewImage.setAttribute(
+            'src',
+            this.jpg ? this.jpg : `https://i.ytimg.com/vi/${this.videoId}/${this.preview}default.jpg`
+        );
+        this.previewImage.setAttribute('alt', this.playLabel);
+        this.previewImage.setAttribute('title', this.playLabel);
+        this.previewImage.className = 'lty-preview';
+
+        // If a poster fails to load, use fallbacks
+        if (window.LiteYTEmbedConfig.useFallback) {
+            this.onPosterLoad = this.onPosterLoad.bind(this);
+            this.onPosterError = this.onPosterError.bind(this);
+            this.previewImage.addEventListener('load', this.onPosterLoad);
+            this.previewImage.addEventListener('error', this.onPosterError);
+        }
+
+        this.previewContainer.appendChild(this.previewImage);
+
+        this.insertBefore(this.previewContainer, this.firstChild);
+    }
+
+    onPosterLoad() {
+        // YouTube 'no-poster' thumbnail has width of 120
+        if (this.previewImage.naturalWidth <= 120) {
+            this.onPosterError();
+        }
+    }
+
+    onPosterError() {
+        let source = this.querySelector('source');
+        if (source) {
+            // we have WebP source
+            if (this.webp !== 'yes') {
+                // incorrect custom WebP image, fallback to default
+                this.webp = 'yes';
+                source.setAttribute(
+                    'srcset',
+                    `https://i.ytimg.com/vi_webp/${this.videoId}/${this.preview}default.webp`
+                );
+                return;
+            }
+            // perhaps requested default WebP image is too big, downgrade
+            if (!this.tryDowngradingSize()) {
+                source.remove();
+                source = null;
+                this.webp = 'no';
+            }
+            // update the image with a new size
+            this.setImageDimensions();
+            if (source) {
+                source.setAttribute(
+                    'srcset',
+                    `https://i.ytimg.com/vi_webp/${this.videoId}/${this.preview}default.webp`
+                );
+            } else {
+                this.previewImage.setAttribute(
+                    'src',
+                    `https://i.ytimg.com/vi/${this.videoId}/${this.preview}default.jpg`
+                );
+            }
+            return;
+        }
+
+        // source doesn't exist, we're dealing with WebP
+
+        if (this.jpg) {
+            // incorrect custom JPG image, fallback to default
+            this.jpg = null;
+            this.previewImage.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.preview}default.jpg`);
+            return;
+        }
+
+        if (this.preview === 'hq') {
+            // nowhere to downgrade
+            return;
+        }
+
+        // downgrade jpg poster
+        this.tryDowngradingSize();
+        this.previewImage.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.preview}default.jpg`);
+    }
+
+    tryDowngradingSize() {
+        switch (this.preview) {
+            case 'maxres':
+                this.preview = 'sd';
+                return true;
+            case 'sd':
+                this.preview = 'hq';
+                return true;
+            /**
+             * I think(?) a video should always have at least a 'hq' poster so if it doesn't exist,
+             * then likely a video has no (WebP) poster at all.
+             */
+            default:
+                return false;
+        }
+    }
+
+    setImageDimensions() {
         let width, height;
         switch (this.preview) {
             case 'mq':
@@ -141,55 +273,9 @@ class LiteYTEmbed extends HTMLElement {
                 width = 1280;
                 height = 720;
                 break;
-            default:
-                // anything else is treated as incorrect value
-                return;
         }
-
-        // Custom jpg preview
-        this.jpg = this.getAttribute('jpg');
-
-        /**
-         * Webp:
-         * [yes] - default YouTube image
-         * [no] - if YouTube has no preview for this video
-         * Anything else is treated like a custom image
-         */
-        // TODO: Add an option that would check in background if WebP exists instead of manual toggle
-        this.webp = this.getAttribute('webp') || window.LiteYTEmbedConfig.webp || 'yes';
-
-        const picture = document.createElement('picture');
-        picture.className = 'lty-preview-container';
-
-        if (this.webp !== 'no') {
-            const source = document.createElement('source');
-            source.setAttribute('type', 'image/webp');
-            source.setAttribute(
-                'srcset',
-                this.webp === 'yes'
-                    ? `https://i.ytimg.com/vi_webp/${this.videoId}/${this.preview}default.webp`
-                    : this.webp
-            );
-            picture.appendChild(source);
-        }
-
-        const img = document.createElement('img');
-        img.setAttribute('decoding', 'async');
-        img.setAttribute('loading', 'lazy');
-        if (width && height) {
-            img.setAttribute('width', width);
-            img.setAttribute('height', height);
-        }
-        img.setAttribute(
-            'src',
-            this.jpg ? this.jpg : `https://i.ytimg.com/vi/${this.videoId}/${this.preview}default.jpg`
-        );
-        img.setAttribute('alt', this.playLabel);
-        img.setAttribute('title', this.playLabel);
-        img.className = 'lty-preview';
-        picture.appendChild(img);
-
-        this.insertBefore(picture, this.firstChild);
+        this.previewImage.setAttribute('width', width);
+        this.previewImage.setAttribute('height', height);
     }
 
     async addYTPlayerIframe(params) {
