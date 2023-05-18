@@ -347,6 +347,11 @@ class LiteYTEmbed extends HTMLElement {
     params.append('autoplay', '1');
     params.append('playsinline', '1');
 
+    // an attempt to fix "Failed to execute 'postMessage' on 'DOMWindow'"
+    if (window.location.origin) {
+      params.append('origin', window.location.origin);
+    }
+
     if (LiteYTEmbed.usesApi) {
       // via API
       return this.addYTPlayerIframe(params);
