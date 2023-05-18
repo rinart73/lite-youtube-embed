@@ -51,7 +51,9 @@ class LiteYTEmbed extends HTMLElement {
         // However Safari desktop and most/all mobile browsers do not successfully track the user gesture of clicking through the creation/loading of the iframe,
         // so they don't autoplay automatically. Instead we must load an additional 2 sequential JS files (1KB + 165KB) (un-br) for the YT Player API
         // TODO: Try loading the the YT API in parallel with our iframe and then attaching/playing it. #82
-        this.needsYTApiForAutoplay = navigator.vendor.includes('Apple') || navigator.userAgent.includes('Mobi');
+        // API can be force-loaded via config
+        this.needsYTApiForAutoplay =
+            window.LiteYTEmbedConfig.api || navigator.vendor.includes('Apple') || navigator.userAgent.includes('Mobi');
     }
 
     /**
@@ -300,6 +302,7 @@ class LiteYTEmbed extends HTMLElement {
             playerVars: paramsObj,
             events: {
                 onReady: (event) => {
+                    this.api = event.target;
                     event.target.playVideo();
                 }
             }

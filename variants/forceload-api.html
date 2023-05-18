@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>lite-youtube-embed - forceload-api</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../src/lite-yt-embed.css" />
+</head>
+<body>
+<h1>forceload api</h1>
+<p>Once a video is clicked API is force loaded no matter the browser which allows us to manipulate the video with JavaScript.</p>
+
+<pre>
+var LiteYTEmbedConfig = {
+    api: true
+};
+</pre>
+
+<script>
+var LiteYTEmbedConfig = {
+    api: true
+};
+</script>
+
+<p><lite-youtube videoid="ogfYd705cRs"></lite-youtube></p>
+
+<p>Press the buttons after clicking the video once:</p>
+
+<button id="btn-play">Play</button>
+<button id="btn-goto42">Go to 42s</button>
+<button id="btn-pause">Pause</button>
+<button id="btn-stop">Stop</button>
+
+<script src="../src/lite-yt-embed.js"></script>
+<script>
+    const liteYouTube = document.querySelector('lite-youtube');
+    document.querySelector('#btn-play').addEventListener('click', () => {
+        if(!liteYouTube.api) return;
+
+        liteYouTube.api.playVideo();
+    });
+    document.querySelector('#btn-goto42').addEventListener('click', () => {
+        if(!liteYouTube.api) return;
+
+        liteYouTube.api.seekTo(42);
+    });
+    document.querySelector('#btn-pause').addEventListener('click', () => {
+        if(!liteYouTube.api) return;
+
+        console.log(liteYouTube.api);
+        liteYouTube.api.pauseVideo();
+    })
+    document.querySelector('#btn-stop').addEventListener('click', () => {
+        if(!liteYouTube.api) return;
+
+        liteYouTube.api.stopVideo();
+    })
+</script>
+
+</body>
+</html>
+
