@@ -119,9 +119,9 @@ class LiteYTEmbed extends HTMLElement {
             return;
         }
 
-        this.preview = this.getAttribute('preview') || window.LiteYTEmbedConfig.preview || 'hq';
+        this.size = this.getAttribute('size') || window.LiteYTEmbedConfig.size || 'hq';
         // validate preview size
-        if (!['mq', 'hq', 'sd', 'maxres'].includes(this.preview)) return;
+        if (!['mq', 'hq', 'sd', 'maxres'].includes(this.size)) return;
 
         // Custom jpg preview
         this.jpg = this.getAttribute('jpg');
@@ -142,9 +142,7 @@ class LiteYTEmbed extends HTMLElement {
             source.setAttribute('type', 'image/webp');
             source.setAttribute(
                 'srcset',
-                this.webp === 'yes'
-                    ? `https://i.ytimg.com/vi_webp/${this.videoId}/${this.preview}default.webp`
-                    : this.webp
+                this.webp === 'yes' ? `https://i.ytimg.com/vi_webp/${this.videoId}/${this.size}default.webp` : this.webp
             );
             this.previewContainer.appendChild(source);
         }
@@ -157,7 +155,7 @@ class LiteYTEmbed extends HTMLElement {
 
         this.previewImage.setAttribute(
             'src',
-            this.jpg ? this.jpg : `https://i.ytimg.com/vi/${this.videoId}/${this.preview}default.jpg`
+            this.jpg ? this.jpg : `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`
         );
         this.previewImage.setAttribute('alt', this.playLabel);
         this.previewImage.setAttribute('title', this.playLabel);
@@ -190,10 +188,7 @@ class LiteYTEmbed extends HTMLElement {
             if (this.webp !== 'yes') {
                 // incorrect custom WebP image, fallback to default
                 this.webp = 'yes';
-                source.setAttribute(
-                    'srcset',
-                    `https://i.ytimg.com/vi_webp/${this.videoId}/${this.preview}default.webp`
-                );
+                source.setAttribute('srcset', `https://i.ytimg.com/vi_webp/${this.videoId}/${this.size}default.webp`);
                 return;
             }
             // perhaps requested default WebP image is too big, downgrade
@@ -205,15 +200,9 @@ class LiteYTEmbed extends HTMLElement {
             // update the image with a new size
             this.setImageDimensions();
             if (source) {
-                source.setAttribute(
-                    'srcset',
-                    `https://i.ytimg.com/vi_webp/${this.videoId}/${this.preview}default.webp`
-                );
+                source.setAttribute('srcset', `https://i.ytimg.com/vi_webp/${this.videoId}/${this.size}default.webp`);
             } else {
-                this.previewImage.setAttribute(
-                    'src',
-                    `https://i.ytimg.com/vi/${this.videoId}/${this.preview}default.jpg`
-                );
+                this.previewImage.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
             }
             return;
         }
@@ -223,27 +212,27 @@ class LiteYTEmbed extends HTMLElement {
         if (this.jpg) {
             // incorrect custom JPG image, fallback to default
             this.jpg = null;
-            this.previewImage.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.preview}default.jpg`);
+            this.previewImage.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
             return;
         }
 
-        if (this.preview === 'hq') {
+        if (this.size === 'hq') {
             // nowhere to downgrade
             return;
         }
 
         // downgrade jpg poster
         this.tryDowngradingSize();
-        this.previewImage.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.preview}default.jpg`);
+        this.previewImage.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
     }
 
     tryDowngradingSize() {
-        switch (this.preview) {
+        switch (this.size) {
             case 'maxres':
-                this.preview = 'sd';
+                this.size = 'sd';
                 return true;
             case 'sd':
-                this.preview = 'hq';
+                this.size = 'hq';
                 return true;
             /**
              * I think(?) a video should always have at least a 'hq' poster so if it doesn't exist,
@@ -256,7 +245,7 @@ class LiteYTEmbed extends HTMLElement {
 
     setImageDimensions() {
         let width, height;
-        switch (this.preview) {
+        switch (this.size) {
             case 'mq':
                 width = 320;
                 height = 180;
