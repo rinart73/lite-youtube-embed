@@ -60,7 +60,7 @@ Demo: https://rinart73.github.io/lite-youtube-embed/variants/params.html
 Use this as your HTML, load the script asynchronously, and let the JS progressively enhance it.
 
 ```html
-<lite-youtube videoid="ogfYd705cRs" style="background-image: url('https://i.ytimg.com/vi/ogfYd705cRs/hqdefault.jpg');">
+<lite-youtube videoid="ogfYd705cRs">
   <a href="https://youtube.com/watch?v=ogfYd705cRs" class="lty-playbtn" title="Play Video">
     <span class="lyt-visually-hidden">Play Video: Keynote (Google I/O '18)</span>
   </a>
@@ -130,10 +130,10 @@ Demo: https://rinart73.github.io/lite-youtube-embed/variants/global-config.html
 
 You can opt-in for a fallback mechanism that will try to find a working poster.
 
-1. First it will try your custom poster if defined.
+1. First your custom poster will be tried if it's defined.
 2. Then high resolution YouTube default poster.
-3. Thenit will downgrade it's size until it reaches 'hq' WebP.
-4. Then it falls back to JPG.
+3. Then poster size will be downgraded until it reaches 'hq' WebP.
+4. Then WebP will be dropped in favor of JPG.
 
 The overall speed of this method depends on the amount of tries it will take to find a working poster. YouTube can be quite slow for some reason when you ask it for non-existing images.
 
