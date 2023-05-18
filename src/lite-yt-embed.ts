@@ -32,24 +32,24 @@ interface HTMLIFrameElement {
  *   https://github.com/vb/lazyframe
  */
 class LiteYTEmbed extends HTMLElement {
-  public static supportsWebp?: boolean;
-  public static preconnected = false;
-  public static usesApi?: boolean;
+  private static supportsWebp?: boolean;
+  private static preconnected = false;
+  private static usesApi?: boolean;
 
   public videoId: string = '';
-  public playLabel: string = '';
   // YouTube poster size
   public size: string = '';
   // Custom JPG poster
   public jpg: string = '';
   // WebP poster toggle or custom WebP poster
   public webp: string = '';
-  // Poster img element
-  public poster?: HTMLImageElement;
   // API Player for this video
   public api?: YT.Player;
+  private playLabel: string = '';
+  // Poster img element
+  private posterEl?: HTMLImageElement;
 
-  public static checkWebpSupport(): boolean {
+  private static checkWebpSupport(): boolean {
     const elem = document.createElement('canvas');
 
     if (!!(elem.getContext && elem.getContext('2d'))) {
@@ -68,7 +68,7 @@ class LiteYTEmbed extends HTMLElement {
    * Maybe `<link rel=preload as=document>` would work, but it's unsupported: http://crbug.com/593267
    * But TBH, I don't think it'll happen soon with Site Isolation and split caches adding serious complexity.
    */
-  public static warmConnections() {
+  private static warmConnections() {
     if (LiteYTEmbed.preconnected) return;
 
     // The iframe document and most of its subresources come right off youtube.com
@@ -86,7 +86,7 @@ class LiteYTEmbed extends HTMLElement {
   /**
    * Add a <link rel={preload | preconnect} ...> to the head
    */
-  public static addPrefetch(kind: string, url: string) {
+  private static addPrefetch(kind: string, url: string) {
     const linkEl = document.createElement('link');
     linkEl.rel = kind;
     linkEl.href = url;
@@ -162,6 +162,42 @@ class LiteYTEmbed extends HTMLElement {
     }
   }
 
+  /**
+   * Tries to add iframe via DOM manipulations or YouTube API
+   */
+  public async addIframe() {
+    if (this.classList.contains('lyt-activated')) return;
+    this.classList.add('lyt-activated');
+
+    const params = new URLSearchParams(this.getAttribute('params') || window.LiteYTEmbedConfig?.params || '');
+    params.append('autoplay', '1');
+    params.append('playsinline', '1');
+
+    // an attempt to fix "Failed to execute 'postMessage' on 'DOMWindow'"
+    if (window.location.origin) {
+      params.append('origin', window.location.origin);
+    }
+
+    if (LiteYTEmbed.usesApi) {
+      // via API
+      return this.addYTPlayerIframe(params);
+    }
+
+    // via DOM
+    const iframeEl = document.createElement('iframe');
+    iframeEl.width = '560';
+    iframeEl.height = '315';
+    iframeEl.title = this.playLabel;
+    iframeEl.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture';
+    iframeEl.allowFullscreen = true;
+    iframeEl.fetchPriority = 'high';
+    iframeEl.src = `https://www.youtube-nocookie.com/embed/${this.videoId}?${params.toString()}`;
+    this.append(iframeEl);
+
+    // Set focus for a11y
+    iframeEl.focus();
+  }
+
   // Adds JPG (+ WebP) poster image
   private addPoster() {
     // TODO: Add fallback for progressively enhanced videos as well
@@ -207,19 +243,19 @@ class LiteYTEmbed extends HTMLElement {
       posterContainer.appendChild(source);
     }
 
-    this.poster = document.createElement('img');
-    this.poster.setAttribute('decoding', 'async');
-    this.poster.setAttribute('loading', 'lazy');
+    this.posterEl = document.createElement('img');
+    this.posterEl.setAttribute('decoding', 'async');
+    this.posterEl.setAttribute('loading', 'lazy');
 
     this.setPosterDimensions();
 
-    this.poster.setAttribute(
+    this.posterEl.setAttribute(
       'src',
       this.jpg ? this.jpg : `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`,
     );
-    this.poster.setAttribute('alt', this.playLabel);
-    this.poster.setAttribute('title', this.playLabel);
-    this.poster.className = 'lyt-poster';
+    this.posterEl.setAttribute('alt', this.playLabel);
+    this.posterEl.setAttribute('title', this.playLabel);
+    this.posterEl.className = 'lyt-poster';
 
     if (window.LiteYTEmbedConfig?.useFallback) {
       this.classList.add('lyt-poster-hidden');
@@ -227,15 +263,15 @@ class LiteYTEmbed extends HTMLElement {
       this.onPosterLoad = this.onPosterLoad.bind(this);
       this.onPosterError = this.onPosterError.bind(this);
 
-      if (this.poster.complete) {
+      if (this.posterEl.complete) {
         this.onPosterLoad();
       }
 
-      this.poster.addEventListener('load', this.onPosterLoad);
-      this.poster.addEventListener('error', this.onPosterError);
+      this.posterEl.addEventListener('load', this.onPosterLoad);
+      this.posterEl.addEventListener('error', this.onPosterError);
     }
 
-    posterContainer.appendChild(this.poster);
+    posterContainer.appendChild(this.posterEl);
 
     this.insertBefore(posterContainer, this.firstChild);
   }
@@ -262,8 +298,8 @@ class LiteYTEmbed extends HTMLElement {
         height = 720;
         break;
     }
-    this.poster?.setAttribute('width', width.toString());
-    this.poster?.setAttribute('height', height.toString());
+    this.posterEl?.setAttribute('width', width.toString());
+    this.posterEl?.setAttribute('height', height.toString());
   }
 
   private tryDownscalingSize(): boolean {
@@ -284,7 +320,7 @@ class LiteYTEmbed extends HTMLElement {
 
   private onPosterLoad() {
     // YouTube 'no-poster' gray thumbnail has width of 120
-    if ((this.poster?.naturalWidth || 0) <= 120) {
+    if ((this.posterEl?.naturalWidth || 0) <= 120) {
       this.onPosterError();
       return;
     }
@@ -313,7 +349,7 @@ class LiteYTEmbed extends HTMLElement {
       // nowhere to downscale, WebP likely doesn't exist
       source.remove();
       this.webp = 'no';
-      this.poster?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
+      this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
       return;
     }
 
@@ -322,54 +358,18 @@ class LiteYTEmbed extends HTMLElement {
     if (this.jpg) {
       // incorrect custom JPG image, fallback to default
       this.jpg = '';
-      this.poster?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
+      this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
       return;
     }
 
     // invalid default JPG image, downscale
     if (this.tryDownscalingSize()) {
       this.setPosterDimensions();
-      this.poster?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
+      this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
     }
 
     // nowhere to downscale, ignore
     //? Perhaps allow to set custom final fallback image
-  }
-
-  /**
-   * Tries to add iframe via DOM manipulations or YouTube API
-   */
-  private async addIframe() {
-    if (this.classList.contains('lyt-activated')) return;
-    this.classList.add('lyt-activated');
-
-    const params = new URLSearchParams(this.getAttribute('params') || window.LiteYTEmbedConfig?.params || '');
-    params.append('autoplay', '1');
-    params.append('playsinline', '1');
-
-    // an attempt to fix "Failed to execute 'postMessage' on 'DOMWindow'"
-    if (window.location.origin) {
-      params.append('origin', window.location.origin);
-    }
-
-    if (LiteYTEmbed.usesApi) {
-      // via API
-      return this.addYTPlayerIframe(params);
-    }
-
-    // via DOM
-    const iframeEl = document.createElement('iframe');
-    iframeEl.width = '560';
-    iframeEl.height = '315';
-    iframeEl.title = this.playLabel;
-    iframeEl.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture';
-    iframeEl.allowFullscreen = true;
-    iframeEl.fetchPriority = 'high';
-    iframeEl.src = `https://www.youtube-nocookie.com/embed/${this.videoId}?${params.toString()}`;
-    this.append(iframeEl);
-
-    // Set focus for a11y
-    iframeEl.focus();
   }
 
   private async addYTPlayerIframe(params: URLSearchParams) {

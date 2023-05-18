@@ -3,8 +3,6 @@ lite-youtube {
   position: relative;
   display: block;
   contain: content;
-  background-position: center center;
-  background-size: cover;
   cursor: pointer;
   max-width: 720px;
 }
@@ -15,13 +13,11 @@ lite-youtube::before {
   display: block;
   position: absolute;
   top: 0;
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAADGCAYAAAAT+OqFAAAAdklEQVQoz42QQQ7AIAgEF/T/D+kbq/RWAlnQyyazA4aoAB4FsBSA/bFjuF1EOL7VbrIrBuusmrt4ZZORfb6ehbWdnRHEIiITaEUKa5EJqUakRSaEYBJSCY2dEstQY7AuxahwXFrvZmWl2rh4JZ07z9dLtesfNj5q0FU3A5ObbwAAAABJRU5ErkJggg==);
-  background-position: top;
-  background-repeat: repeat-x;
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAADGCAYAAAAT+OqFAAAAdklEQVQoz42QQQ7AIAgEF/T/D+kbq/RWAlnQyyazA4aoAB4FsBSA/bFjuF1EOL7VbrIrBuusmrt4ZZORfb6ehbWdnRHEIiITaEUKa5EJqUakRSaEYBJSCY2dEstQY7AuxahwXFrvZmWl2rh4JZ07z9dLtesfNj5q0FU3A5ObbwAAAABJRU5ErkJggg==)
+    repeat-x top;
   height: 60px;
   padding-bottom: 50px;
   width: 100%;
-  transition: opacity 0.2s cubic-bezier(0, 0, 0.2, 1);
   z-index: 1;
 }
 
@@ -63,13 +59,10 @@ lite-youtube::after {
   align-items: center;
   color: #eee;
   text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-  font-family: 'YouTube Noto', Roboto, Arial, Helvetica, sans-serif;
-  font-size: 18px;
-  line-height: 1.3;
+  font: 18px / 1.3 'YouTube Noto', Roboto, Arial, Helvetica, sans-serif;
   width: 100%;
   word-wrap: normal;
   z-index: 2;
-  transition: opacity 0.2s cubic-bezier(0, 0, 0.2, 1);
 }
 
 .lyt-title > span {
@@ -116,10 +109,7 @@ lite-youtube .lyt-playbtn:focus {
 lite-youtube.lyt-activated {
   cursor: unset;
 }
-lite-youtube.lyt-activated::before,
-lite-youtube.lyt-activated > .lyt-playbtn,
-lite-youtube.lyt-activated > .lyt-title {
-  opacity: 0;
+lite-youtube.lyt-activated > .lyt-playbtn {
   pointer-events: none;
 }
 

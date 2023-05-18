@@ -2,11 +2,7 @@ import fs from 'fs/promises';
 import { globby } from 'globby';
 import UglifyJS from 'uglify-js';
 
-const files = await globby([
-  './dist/**/*.js',
-  '!**/*.min.js',
-  '!node_modules/**',
-]);
+const files = await globby(['./dist/**/*.js', '!**/*.min.js', '!node_modules/**']);
 for (const path of files) {
   let parts = path.split('/');
   const file = parts[parts.length - 1];
@@ -15,8 +11,40 @@ for (const path of files) {
   parts = minifiedPath.split('/');
   const minifiedFile = parts[parts.length - 1];
 
+  // mangle props
+  const mangleProps = [
+    // static methods
+    'checkWebpSupport',
+    'warmConnections',
+    'addPrefetch',
+    // private methods
+    'addPoster',
+    'setPosterDimensions',
+    'tryDownscalingSize',
+    'onPosterLoad',
+    'onPosterError',
+    'addYTPlayerIframe',
+    'fetchYTPlayerApi',
+    // static properties
+    'supportsWebp',
+    'preconnected',
+    'usesApi',
+    // private properties
+    // 'playLabel', - mangles LiteYTEmbedConfig as well
+    'posterEl',
+  ];
+  const manglePropsRegExp = new RegExp(`^(${mangleProps.join('|')})$`);
+
   const contents = await fs.readFile(path, 'utf8');
   const result = UglifyJS.minify(contents, {
+    compress: {
+      passes: 3,
+    },
+    mangle: {
+      properties: {
+        regex: manglePropsRegExp,
+      },
+    },
     sourceMap: {
       filename: file,
       url: minifiedFile + '.map',
