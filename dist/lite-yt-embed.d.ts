@@ -34,6 +34,7 @@ declare class LiteYTEmbed extends HTMLElement {
     private static preconnected;
     private static usesApi?;
     videoId: string;
+    playlistId: string;
     size: string;
     jpg: string;
     webp: string;

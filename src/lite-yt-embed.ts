@@ -37,6 +37,7 @@ class LiteYTEmbed extends HTMLElement {
   private static usesApi?: boolean;
 
   public videoId: string = '';
+  public playlistId: string = '';
   // YouTube poster size
   public size: string = '';
   // Custom JPG poster
@@ -102,6 +103,7 @@ class LiteYTEmbed extends HTMLElement {
     window.LiteYTEmbedConfig = window.LiteYTEmbedConfig || {};
 
     this.videoId = this.getAttribute('videoid') || '';
+    this.playlistId = this.getAttribute('playlistid') || '';
 
     let playBtnEl: HTMLButtonElement | null = this.querySelector('.lyt-playbtn');
     // A label for the button takes priority over a [playlabel] attribute on the custom-element
@@ -191,7 +193,11 @@ class LiteYTEmbed extends HTMLElement {
     iframeEl.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture';
     iframeEl.allowFullscreen = true;
     iframeEl.fetchPriority = 'high';
-    iframeEl.src = `https://www.youtube-nocookie.com/embed/${this.videoId}?${params.toString()}`;
+    if (this.playlistId) {
+      iframeEl.src = `https://www.youtube-nocookie.com/embed/videoseries?list=${this.playlistId}&${params.toString()}`;
+    } else {
+      iframeEl.src = `https://www.youtube-nocookie.com/embed/${this.videoId}?${params.toString()}`;
+    }
     this.append(iframeEl);
 
     // Set focus for a11y
@@ -380,13 +386,9 @@ class LiteYTEmbed extends HTMLElement {
     const videoPlaceholderEl = document.createElement('div');
     this.append(videoPlaceholderEl);
 
-    const paramsObj = Object.fromEntries(params.entries());
-
-    new YT.Player(videoPlaceholderEl, {
+    const options: YT.PlayerOptions = {
       width: '100%',
       host: 'https://www.youtube-nocookie.com',
-      videoId: this.videoId,
-      playerVars: paramsObj,
       events: {
         onReady: (event) => {
           this.api = event.target;
@@ -395,7 +397,17 @@ class LiteYTEmbed extends HTMLElement {
           this.dispatchEvent(new CustomEvent('ready'));
         },
       },
-    });
+    };
+
+    if (this.playlistId) {
+      params.append('listType', 'playlist');
+      params.append('list', this.playlistId);
+    } else {
+      options.videoId = this.videoId;
+    }
+
+    options.playerVars = Object.fromEntries(params.entries());
+    new YT.Player(videoPlaceholderEl, options);
   }
 
   /**

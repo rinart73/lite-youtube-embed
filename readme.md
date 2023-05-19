@@ -191,6 +191,16 @@ var LiteYTEmbedConfig = {
 
 Demo: https://rinart73.github.io/lite-youtube-embed/variants/forceload-api.html
 
+## Playlists
+
+Playlists are supported, but there is no lightweight way to automatically retrieve playlist thumbnail. So either specify first playlist video id in the `videoid` attribute to use its poster or use custom posters via `jpg` and `webp` attributes.</li>
+
+```html
+<lite-youtube videoid="K4DyBUG242c" playlistid="PLW-S5oymMexXTgRyT3BWVt_y608nt85Uj"></lite-youtube>
+```
+
+Demo: https://rinart73.github.io/lite-youtube-embed/variants/playlists.html
+
 ## Other fast YouTube embeds
 
 * &lt;lite-youtube&gt; using shadow DOM: [`justinribeiro/lite-youtube`](https://github.com/justinribeiro/lite-youtube) :+1:
