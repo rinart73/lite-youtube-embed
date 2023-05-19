@@ -174,7 +174,7 @@ class LiteYTEmbed extends HTMLElement {
     params.append('playsinline', '1');
 
     // an attempt to fix "Failed to execute 'postMessage' on 'DOMWindow'"
-    if (window.location.origin) {
+    if (window.location.host) {
       params.append('origin', window.location.origin);
     }
 
@@ -196,6 +196,8 @@ class LiteYTEmbed extends HTMLElement {
 
     // Set focus for a11y
     iframeEl.focus();
+
+    this.dispatchEvent(new CustomEvent('ready'));
   }
 
   // Adds JPG (+ WebP) poster image
@@ -389,6 +391,8 @@ class LiteYTEmbed extends HTMLElement {
         onReady: (event) => {
           this.api = event.target;
           this.api.playVideo();
+
+          this.dispatchEvent(new CustomEvent('ready'));
         },
       },
     });

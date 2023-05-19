@@ -9,6 +9,7 @@
 <body>
 <h1>forceload api</h1>
 <p>Once a video is clicked API is force loaded no matter the browser which allows us to manipulate the video with JavaScript.</p>
+<p><strong id="status">Iframe is not created yet</strong></p>
 
 <pre>
 var LiteYTEmbedConfig = {
@@ -34,6 +35,17 @@ var LiteYTEmbedConfig = {
 <script src="../dist/lite-yt-embed.min.js"></script>
 <script>
     const liteYouTube = document.querySelector('lite-youtube');
+    const statusEl = document.querySelector('#status');
+
+    liteYouTube.addEventListener('ready', function() {
+        if(statusEl) {
+            statusEl.textContent = this.api ? 'Iframe was created with API' : 'Iframe was created without API';
+        }
+        if(this.api) {
+            this.api.seekTo(13);
+        }
+    });
+
     document.querySelector('#btn-play').addEventListener('click', () => {
         if(!liteYouTube.api) return;
 
