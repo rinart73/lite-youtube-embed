@@ -38,7 +38,7 @@ declare class LiteYTEmbed extends HTMLElement {
     jpg: string;
     webp: string;
     api?: YT.Player;
-    private playLabel;
+    private playLabelText;
     private posterEl?;
     private static checkWebpSupport;
     /**

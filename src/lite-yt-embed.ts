@@ -45,7 +45,7 @@ class LiteYTEmbed extends HTMLElement {
   public webp: string = '';
   // API Player for this video
   public api?: YT.Player;
-  private playLabel: string = '';
+  private playLabelText: string = '';
   // Poster img element
   private posterEl?: HTMLImageElement;
 
@@ -105,7 +105,7 @@ class LiteYTEmbed extends HTMLElement {
 
     let playBtnEl: HTMLButtonElement | null = this.querySelector('.lyt-playbtn');
     // A label for the button takes priority over a [playlabel] attribute on the custom-element
-    this.playLabel =
+    this.playLabelText =
       playBtnEl?.textContent?.trim() || this.getAttribute('playlabel') || window.LiteYTEmbedConfig.playLabel || 'Play';
 
     // title in the top left corner
@@ -119,7 +119,7 @@ class LiteYTEmbed extends HTMLElement {
       }
       if (!titleEl.textContent) {
         const titleTextEl = document.createElement('span');
-        titleTextEl.textContent = this.playLabel;
+        titleTextEl.textContent = this.playLabelText;
         titleEl.append(titleTextEl);
       }
     }
@@ -136,7 +136,7 @@ class LiteYTEmbed extends HTMLElement {
     if (!playBtnEl.textContent) {
       const playBtnLabelEl = document.createElement('span');
       playBtnLabelEl.className = 'lyt-visually-hidden';
-      playBtnLabelEl.textContent = this.playLabel;
+      playBtnLabelEl.textContent = this.playLabelText;
       playBtnEl.append(playBtnLabelEl);
     }
     // progressive enhancement - remove `a` link attributes
@@ -187,7 +187,7 @@ class LiteYTEmbed extends HTMLElement {
     const iframeEl = document.createElement('iframe');
     iframeEl.width = '560';
     iframeEl.height = '315';
-    iframeEl.title = this.playLabel;
+    iframeEl.title = this.playLabelText;
     iframeEl.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture';
     iframeEl.allowFullscreen = true;
     iframeEl.fetchPriority = 'high';
@@ -255,8 +255,8 @@ class LiteYTEmbed extends HTMLElement {
       'src',
       this.jpg ? this.jpg : `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`,
     );
-    this.posterEl.setAttribute('alt', this.playLabel);
-    this.posterEl.setAttribute('title', this.playLabel);
+    this.posterEl.setAttribute('alt', this.playLabelText);
+    this.posterEl.setAttribute('title', this.playLabelText);
     this.posterEl.className = 'lyt-poster';
 
     if (window.LiteYTEmbedConfig?.useFallback) {

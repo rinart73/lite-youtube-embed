@@ -30,7 +30,7 @@ for (const path of files) {
     'preconnected',
     'usesApi',
     // private properties
-    // 'playLabel', - mangles LiteYTEmbedConfig as well
+    'playLabelText',
     'posterEl',
   ];
   const manglePropsRegExp = new RegExp(`^(${mangleProps.join('|')})$`);
