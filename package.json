@@ -1,6 +1,6 @@
 {
-  "name": "lite-youtube-embed",
-  "version": "0.2.0",
+  "name": "@rinart73/lite-youtube-embed",
+  "version": "0.3.1",
   "description": "A faster youtube embed.",
   "license": "Apache-2.0",
   "main": "./dist/lite-yt-embed.js",
@@ -8,7 +8,7 @@
   "style": "./dist/lite-yt-embed.css",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/paulirish/lite-youtube-embed.git"
+    "url": "git+https://github.com/rinart73/lite-youtube-embed.git"
   },
   "keywords": [
     "youtube",
@@ -17,11 +17,12 @@
   ],
   "author": "Paul Irish",
   "bugs": {
-    "url": "https://github.com/paulirish/lite-youtube-embed/issues"
+    "url": "https://github.com/rinart73/lite-youtube-embed/issues"
   },
-  "homepage": "https://github.com/paulirish/lite-youtube-embed#readme",
+  "homepage": "https://github.com/rinart73/lite-youtube-embed#readme",
   "readme": "readme.md",
   "files": [
+    "dist/**",
     "src/**",
     "package.json",
     "package-lock.json",

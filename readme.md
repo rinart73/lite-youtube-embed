@@ -1,4 +1,7 @@
-# Lite YouTube Embed [![NPM lite-youtube-embed package](https://img.shields.io/npm/v/lite-youtube-embed.svg)](https://npmjs.org/package/lite-youtube-embed)
+# Lite YouTube Embed [![NPM lite-youtube-embed package](https://img.shields.io/npm/v/@rinart73/lite-youtube-embed.svg)](https://npmjs.org/package/@rinart73/lite-youtube-embed)
+
+> **Note**
+> This is a fork of the [lite-youtube-embed](https://github.com/paulirish/lite-youtube-embed) package
 
 > #### Renders faster than a sneeze.
 
@@ -15,8 +18,7 @@ Demo: https://rinart73.github.io/lite-youtube-embed/
 
 ## Basic usage
 
-> **Note**
-> This is a **fork**, so you'll have to download the files from the `dist/` folder. `lite-youtube-embed` npm package belongs to the original author.
+Use the [`@rinart73/lite-youtube-embed` npm package](https://www.npmjs.com/package/@rinart73/lite-youtube-embed) or download from this repo and use `dist/`.
 
 To use the custom element you will need to:
 
@@ -27,9 +29,9 @@ To use the custom element you will need to:
 
 ```html
 <!-- Include the CSS & JS.. (This could be direct from the package or bundled) -->
-<link rel="stylesheet" href="node_modules/lite-youtube-embed/src/lite-yt-embed.css" />
+<link rel="stylesheet" href="node_modules/@rinart73/lite-youtube-embed/dist/lite-yt-embed.min.css" />
 
-<script src="node_modules/lite-youtube-embed/src/lite-yt-embed.js"></script>
+<script src="node_modules/@rinart73/lite-youtube-embed/dist/lite-yt-embed.min.js"></script>
 
 <!-- Use the element. You may use it before the lite-yt-embed JS is executed. -->
 <lite-youtube videoid="ogfYd705cRs" playlabel="Play: Keynote (Google I/O '18)"></lite-youtube>
@@ -60,11 +62,11 @@ Use this as your HTML, load the script asynchronously, and let the JS progressiv
 
 ```html
 <lite-youtube videoid="ogfYd705cRs">
-  <picture class="lty-preview-container">
+  <picture class="lyt-poster-container">
     <source type="image/webp" srcset="https://i.ytimg.com/vi_webp/ogfYd705cRs/hqdefault.webp">
-    <img decoding="async" loading="lazy" width="480" height="360" src="https://i.ytimg.com/vi/ogfYd705cRs/hqdefault.jpg" alt="Play Video: Keynote (Google I/O '18)" title="Play Video: Keynote (Google I/O '18)" class="lty-preview">
+    <img decoding="async" loading="lazy" width="480" height="360" src="https://i.ytimg.com/vi/ogfYd705cRs/hqdefault.jpg" alt="Play Video: Keynote (Google I/O '18)" title="Play Video: Keynote (Google I/O '18)" class="lyt-poster">
   </picture>
-  <a class="lty-playbtn" title="Play Video" href="https://youtube.com/watch?v=ogfYd705cRs" target="_blank">
+  <a class="lyt-playbtn" title="Play Video" href="https://youtube.com/watch?v=ogfYd705cRs" target="_blank">
     <span class="lyt-visually-hidden">Play Video: Keynote (Google I/O '18)</span>
   </a>
 </lite-youtube>
