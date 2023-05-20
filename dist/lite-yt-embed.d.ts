@@ -11,7 +11,7 @@ interface LiteYTEmbedConfig {
 interface Window {
     LiteYTEmbedConfig?: LiteYTEmbedConfig;
     YT?: typeof YT & {
-        ready(callback: (value: unknown) => void): void;
+        ready: (callback: (value: unknown) => void) => void;
     };
 }
 interface HTMLIFrameElement {
@@ -64,7 +64,7 @@ declare class LiteYTEmbed extends HTMLElement {
     /**
      * Tries to add iframe via DOM manipulations or YouTube API
      */
-    addIframe(): Promise<void>;
+    addIframe(): void;
     private addPoster;
     private setPosterDimensions;
     private tryDownscalingSize;

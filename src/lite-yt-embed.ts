@@ -8,13 +8,15 @@ interface LiteYTEmbedConfig {
   forceApi?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Window {
   LiteYTEmbedConfig?: LiteYTEmbedConfig;
   YT?: typeof YT & {
-    ready(callback: (value: unknown) => void): void;
+    ready: (callback: (value: unknown) => void) => void;
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface HTMLIFrameElement {
   fetchPriority: 'high' | 'low' | 'auto';
 }
@@ -53,7 +55,7 @@ class LiteYTEmbed extends HTMLElement {
   private static checkWebpSupport(): boolean {
     const elem = document.createElement('canvas');
 
-    if (!!(elem.getContext && elem.getContext('2d'))) {
+    if (elem.getContext?.('2d') != null) {
       return elem.toDataURL('image/webp').indexOf('data:image/webp') === 0;
     }
 
@@ -69,7 +71,7 @@ class LiteYTEmbed extends HTMLElement {
    * Maybe `<link rel=preload as=document>` would work, but it's unsupported: http://crbug.com/593267
    * But TBH, I don't think it'll happen soon with Site Isolation and split caches adding serious complexity.
    */
-  private static warmConnections() {
+  private static warmConnections(): void {
     if (LiteYTEmbed.preconnected) return;
 
     // The iframe document and most of its subresources come right off youtube.com
@@ -87,7 +89,7 @@ class LiteYTEmbed extends HTMLElement {
   /**
    * Add a <link rel={preload | preconnect} ...> to the head
    */
-  private static addPrefetch(kind: string, url: string) {
+  private static addPrefetch(kind: string, url: string): void {
     const linkEl = document.createElement('link');
     linkEl.rel = kind;
     linkEl.href = url;
@@ -98,28 +100,28 @@ class LiteYTEmbed extends HTMLElement {
    * Invoked each time the custom element is appended into a document-connected element
    * See: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
    */
-  connectedCallback() {
+  connectedCallback(): void {
     // init global config object if it doesn't exist
-    window.LiteYTEmbedConfig = window.LiteYTEmbedConfig || {};
+    window.LiteYTEmbedConfig = window.LiteYTEmbedConfig ?? {};
 
-    this.videoId = this.getAttribute('videoid') || '';
-    this.playlistId = this.getAttribute('playlistid') || '';
+    this.videoId = this.getAttribute('videoid') ?? '';
+    this.playlistId = this.getAttribute('playlistid') ?? '';
 
     let playBtnEl: HTMLButtonElement | null = this.querySelector('.lyt-playbtn');
     // A label for the button takes priority over a [playlabel] attribute on the custom-element
     this.playLabelText =
-      playBtnEl?.textContent?.trim() || this.getAttribute('playlabel') || window.LiteYTEmbedConfig.playLabel || 'Play';
+      playBtnEl?.textContent?.trim() ?? this.getAttribute('playlabel') ?? window.LiteYTEmbedConfig.playLabel ?? 'Play';
 
     // title in the top left corner
-    let showTitle = this.getAttribute('showtitle') || window.LiteYTEmbedConfig.showTitle || 'no';
+    const showTitle = this.getAttribute('showtitle') ?? window.LiteYTEmbedConfig.showTitle ?? 'no';
     if (showTitle === 'yes') {
       let titleEl = this.querySelector('.lyt-title');
-      if (!titleEl) {
+      if (titleEl == null) {
         titleEl = document.createElement('div');
         titleEl.className = 'lyt-title';
         this.append(titleEl);
       }
-      if (!titleEl.textContent) {
+      if ((titleEl.textContent ?? '') === '') {
         const titleTextEl = document.createElement('span');
         titleTextEl.textContent = this.playLabelText;
         titleEl.append(titleTextEl);
@@ -129,13 +131,13 @@ class LiteYTEmbed extends HTMLElement {
     this.addPoster();
 
     // Set up play button, and its visually hidden label
-    if (!playBtnEl) {
+    if (playBtnEl == null) {
       playBtnEl = document.createElement('button');
       playBtnEl.type = 'button';
       playBtnEl.className = 'lyt-playbtn';
       this.append(playBtnEl);
     }
-    if (!playBtnEl.textContent) {
+    if ((playBtnEl.textContent ?? '') === '') {
       const playBtnLabelEl = document.createElement('span');
       playBtnLabelEl.className = 'lyt-visually-hidden';
       playBtnLabelEl.textContent = this.playLabelText;
@@ -160,29 +162,31 @@ class LiteYTEmbed extends HTMLElement {
     // API can be force-loaded via config
     if (LiteYTEmbed.usesApi === undefined) {
       LiteYTEmbed.usesApi =
-        window.LiteYTEmbedConfig.forceApi || navigator.vendor.includes('Apple') || navigator.userAgent.includes('Mobi');
+        window.LiteYTEmbedConfig.forceApi ??
+        (navigator.vendor.includes('Apple') || navigator.userAgent.includes('Mobi'));
     }
   }
 
   /**
    * Tries to add iframe via DOM manipulations or YouTube API
    */
-  public async addIframe() {
+  public addIframe(): void {
     if (this.classList.contains('lyt-activated')) return;
     this.classList.add('lyt-activated');
 
-    const params = new URLSearchParams(this.getAttribute('params') || window.LiteYTEmbedConfig?.params || '');
+    const params = new URLSearchParams(this.getAttribute('params') ?? window.LiteYTEmbedConfig?.params ?? '');
     params.append('autoplay', '1');
     params.append('playsinline', '1');
 
     // an attempt to fix "Failed to execute 'postMessage' on 'DOMWindow'"
-    if (window.location.host) {
+    if (window.location.host !== '') {
       params.append('origin', window.location.origin);
     }
 
-    if (LiteYTEmbed.usesApi) {
+    if (LiteYTEmbed.usesApi === true) {
       // via API
-      return this.addYTPlayerIframe(params);
+      void this.addYTPlayerIframe(params);
+      return;
     }
 
     // via DOM
@@ -193,7 +197,7 @@ class LiteYTEmbed extends HTMLElement {
     iframeEl.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture';
     iframeEl.allowFullscreen = true;
     iframeEl.fetchPriority = 'high';
-    if (this.playlistId) {
+    if (this.playlistId !== '') {
       iframeEl.src = `https://www.youtube-nocookie.com/embed/videoseries?list=${this.playlistId}&${params.toString()}`;
     } else {
       iframeEl.src = `https://www.youtube-nocookie.com/embed/${this.videoId}?${params.toString()}`;
@@ -207,27 +211,27 @@ class LiteYTEmbed extends HTMLElement {
   }
 
   // Adds JPG (+ WebP) poster image
-  private addPoster() {
+  private addPoster(): void {
     // TODO: Add fallback for progressively enhanced videos as well
 
-    if (this.querySelector('.lyt-preview-container')) {
+    if (this.querySelector('.lyt-preview-container') != null) {
       // Preview was added manually, don't override
       return;
     }
 
-    this.size = this.getAttribute('size') || window.LiteYTEmbedConfig?.size || 'hq';
+    this.size = this.getAttribute('size') ?? window.LiteYTEmbedConfig?.size ?? 'hq';
     // validate preview size
     if (!['mq', 'hq', 'sd', 'maxres'].includes(this.size)) return;
 
     // Custom jpg preview
-    this.jpg = this.getAttribute('jpg') || '';
+    this.jpg = this.getAttribute('jpg') ?? '';
 
     /**
      * 'yes' - default YouTube image
      * 'no' - typically used if YouTube has no preview for this video
      * Anything else is treated like a custom image
      */
-    this.webp = this.getAttribute('webp') || window.LiteYTEmbedConfig?.webp || 'yes';
+    this.webp = this.getAttribute('webp') ?? window.LiteYTEmbedConfig?.webp ?? 'yes';
 
     // Check if browser supports WebP
     if (LiteYTEmbed.supportsWebp === undefined) {
@@ -237,7 +241,7 @@ class LiteYTEmbed extends HTMLElement {
       this.webp = 'no';
     }
 
-    let posterContainer = document.createElement('picture');
+    const posterContainer = document.createElement('picture');
     posterContainer.className = 'lyt-poster-container';
 
     // Add WebP source if allowed
@@ -259,13 +263,13 @@ class LiteYTEmbed extends HTMLElement {
 
     this.posterEl.setAttribute(
       'src',
-      this.jpg ? this.jpg : `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`,
+      this.jpg !== '' ? this.jpg : `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`,
     );
     this.posterEl.setAttribute('alt', this.playLabelText);
     this.posterEl.setAttribute('title', this.playLabelText);
     this.posterEl.className = 'lyt-poster';
 
-    if (window.LiteYTEmbedConfig?.useFallback) {
+    if (window.LiteYTEmbedConfig?.useFallback === true) {
       this.classList.add('lyt-poster-hidden');
 
       this.onPosterLoad = this.onPosterLoad.bind(this);
@@ -285,7 +289,7 @@ class LiteYTEmbed extends HTMLElement {
   }
 
   // Sets poster image dimensions based on 'size' attribute
-  private setPosterDimensions() {
+  private setPosterDimensions(): void {
     let width, height;
     switch (this.size) {
       case 'mq':
@@ -326,9 +330,9 @@ class LiteYTEmbed extends HTMLElement {
     return false;
   }
 
-  private onPosterLoad() {
+  private onPosterLoad(): void {
     // YouTube 'no-poster' gray thumbnail has width of 120
-    if ((this.posterEl?.naturalWidth || 0) <= 120) {
+    if ((this.posterEl?.naturalWidth ?? 0) <= 120) {
       this.onPosterError();
       return;
     }
@@ -336,9 +340,9 @@ class LiteYTEmbed extends HTMLElement {
     this.classList.remove('lyt-poster-hidden');
   }
 
-  private onPosterError() {
-    let source = this.querySelector('source');
-    if (source) {
+  private onPosterError(): void {
+    const source = this.querySelector('source');
+    if (source != null) {
       // we have WebP source
       if (this.webp !== 'yes') {
         // invalid custom WebP image, fallback to default
@@ -363,7 +367,7 @@ class LiteYTEmbed extends HTMLElement {
 
     // working with jpg
 
-    if (this.jpg) {
+    if (this.jpg !== '') {
       // incorrect custom JPG image, fallback to default
       this.jpg = '';
       this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
@@ -377,10 +381,10 @@ class LiteYTEmbed extends HTMLElement {
     }
 
     // nowhere to downscale, ignore
-    //? Perhaps allow to set custom final fallback image
+    // ? Perhaps allow to set custom final fallback image
   }
 
-  private async addYTPlayerIframe(params: URLSearchParams) {
+  private async addYTPlayerIframe(params: URLSearchParams): Promise<void> {
     await this.fetchYTPlayerApi();
 
     const videoPlaceholderEl = document.createElement('div');
@@ -399,7 +403,7 @@ class LiteYTEmbed extends HTMLElement {
       },
     };
 
-    if (this.playlistId) {
+    if (this.playlistId !== '') {
       params.append('listType', 'playlist');
       params.append('list', this.playlistId);
     } else {
@@ -407,23 +411,24 @@ class LiteYTEmbed extends HTMLElement {
     }
 
     options.playerVars = Object.fromEntries(params.entries());
+    // eslint-disable-next-line no-new
     new YT.Player(videoPlaceholderEl, options);
   }
 
   /**
    * Dynamically load YouTube iframe API
    */
-  private fetchYTPlayerApi() {
-    if (window.YT) return;
+  private fetchYTPlayerApi(): Promise<unknown> | undefined {
+    if (window.YT !== undefined) return;
 
-    return new Promise((res, rej) => {
-      var el = document.createElement('script');
+    return new Promise((resolve, reject): void => {
+      const el = document.createElement('script');
       el.src = 'https://www.youtube.com/iframe_api';
       el.async = true;
       el.onload = () => {
-        window.YT?.ready(res);
+        window.YT?.ready(resolve);
       };
-      el.onerror = rej;
+      el.onerror = reject;
       this.append(el);
     });
   }
