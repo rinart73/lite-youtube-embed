@@ -38,20 +38,37 @@ class LiteYTEmbed extends HTMLElement {
   private static preconnected = false;
   private static usesApi?: boolean;
 
-  public videoId: string = '';
-  public playlistId: string = '';
-  // YouTube poster size
-  public size: string = '';
-  // Custom JPG poster
-  public jpg: string = '';
-  // WebP poster toggle or custom WebP poster
-  public webp: string = '';
-  // API Player for this video
+  public videoId = '';
+  public playlistId = '';
+  /**
+   * YouTube poster size
+   */
+  public size = '';
+  /**
+   * Custom JPG poster
+   */
+  public jpg = '';
+  /**
+   * WebP poster toggle or custom WebP poster
+   */
+  public webp = '';
+  /**
+   * API Player instance
+   */
   public api?: YT.Player;
   private isInitialized?: boolean;
-  private playLabelText: string = '';
-  // Poster img element
+  private playLabelText = '';
+  /**
+   * Poster img element
+   */
   private posterEl?: HTMLImageElement;
+
+  /**
+   * Returns an array of attribute names that should be observed for change
+   */
+  public static get observedAttributes(): string[] {
+    return ['videoid', 'playlistid', 'playlabel', 'showtitle', 'params' /* , 'size', 'jpg', 'webp' */];
+  }
 
   private static checkWebpSupport(): boolean {
     const elem = document.createElement('canvas');
@@ -101,12 +118,12 @@ class LiteYTEmbed extends HTMLElement {
    * Invoked each time the custom element is appended into a document-connected element
    * See: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
    */
-  connectedCallback(): void {
+  public connectedCallback(): void {
     // connectedCallback may be called once the element is no longer connected, use Node.isConnected to make sure
     if (!this.isConnected) return;
 
     // make sure that the element is not being processed more than once
-    if(this.isInitialized === true) return;
+    if (this.isInitialized === true) return;
 
     // init global config object if it doesn't exist
     window.LiteYTEmbedConfig = window.LiteYTEmbedConfig ?? {};
@@ -114,45 +131,27 @@ class LiteYTEmbed extends HTMLElement {
     this.videoId = this.getAttribute('videoid') ?? '';
     this.playlistId = this.getAttribute('playlistid') ?? '';
 
-    let playBtnEl: HTMLButtonElement | null = this.querySelector('.lyt-playbtn');
-    // A label for the button takes priority over a [playlabel] attribute on the custom-element
-    this.playLabelText =
-      playBtnEl?.textContent?.trim() ?? this.getAttribute('playlabel') ?? window.LiteYTEmbedConfig.playLabel ?? 'Play';
-
-    // title in the top left corner
-    const showTitle = this.getAttribute('showtitle') ?? window.LiteYTEmbedConfig.showTitle ?? 'no';
-    if (showTitle === 'yes') {
-      let titleEl = this.querySelector('.lyt-title');
-      if (titleEl == null) {
-        titleEl = document.createElement('div');
-        titleEl.className = 'lyt-title';
-        this.append(titleEl);
-      }
-      if ((titleEl.textContent ?? '') === '') {
-        const titleTextEl = document.createElement('span');
-        titleTextEl.textContent = this.playLabelText;
-        titleEl.append(titleTextEl);
-      }
-    }
-
-    this.addPoster();
-
     // Set up play button, and its visually hidden label
+    let playBtnEl: HTMLButtonElement | null = this.querySelector('.lyt-playbtn');
     if (playBtnEl == null) {
       playBtnEl = document.createElement('button');
       playBtnEl.type = 'button';
       playBtnEl.className = 'lyt-playbtn';
       this.append(playBtnEl);
     }
-    if ((playBtnEl.textContent ?? '') === '') {
-      const playBtnLabelEl = document.createElement('span');
+    let playBtnLabelEl = playBtnEl.querySelector('span');
+    if (playBtnLabelEl == null) {
+      playBtnLabelEl = document.createElement('span');
       playBtnLabelEl.className = 'lyt-visually-hidden';
-      playBtnLabelEl.textContent = this.playLabelText;
       playBtnEl.append(playBtnLabelEl);
     }
+    playBtnLabelEl.textContent = window.LiteYTEmbedConfig?.playLabel ?? 'Play';
+
     // progressive enhancement - remove `a` link attributes
     playBtnEl.removeAttribute('href');
     playBtnEl.removeAttribute('target');
+
+    this.addPoster();
 
     // On hover (or tap), warm up the TCP connections we're (likely) about to use.
     this.addEventListener('pointerover', LiteYTEmbed.warmConnections, { once: true });
@@ -160,7 +159,10 @@ class LiteYTEmbed extends HTMLElement {
     // Once the user clicks, add the real iframe and drop our play button
     // TODO: In the future we could be like amp-youtube and silently swap in the iframe during idle time
     //   We'd want to only do this for in-viewport or near-viewport ones: https://github.com/ampproject/amphtml/pull/5003
-    this.addEventListener('click', this.addIframe);
+    this.addIframe = this.addIframe.bind(this);
+    this.addEventListener('click', () => {
+      this.addIframe();
+    });
 
     // Chrome & Edge desktop have no problem with the basic YouTube Embed with ?autoplay=1
     // However Safari desktop and most/all mobile browsers do not successfully track the user gesture of clicking through the creation/loading of the iframe,
@@ -174,13 +176,173 @@ class LiteYTEmbed extends HTMLElement {
     }
 
     this.isInitialized = true;
+
+    /**
+     * Trigger manual update for the some attributes if they're empty
+     * because their values could be set in the global config.
+     */
+    ['playlabel', 'showtitle', 'params' /* , 'size', 'webp' */].forEach((attribute) => {
+      if (this.getAttribute(attribute) == null) {
+        this.attributeChangedCallback(attribute);
+      }
+    });
+  }
+
+  /**
+   * Run whenever one of the element's attributes is changed in some way
+   */
+  public attributeChangedCallback(name: string, oldValue: string | null = null, newValue: string | null = null): void {
+    // ignore matching old and new value unless both are null (which would mean manual update)
+    if (oldValue === newValue && oldValue !== null) return;
+
+    /**
+     * When an attribute is updated:
+     * * `showtitle` - Create or remove title element
+     * * `playlabel` - Update play button text, title text, poster title/alt attributes, iframe title attribute
+     * * If iframe isn't loaded yet:
+     * * * `size` - Update poster, restart fallback?
+     * * * `jpg` - Update poster, restart fallback?
+     * * * `webp` - Update poster, restart fallback?
+     * * * `videoid` - Update poster, restart fallback?
+     * * * `playlistid` - Do nothing
+     * * * `params` - Do nothing
+     * * If iframe is already loaded:
+     * * * `size` - Do nothing
+     * * * `jpg` - Do nothing
+     * * * `webp` - Do nothing
+     * * * `params` - Re-create iframe
+     * * * If using DOM:
+     * * * * `videoid` - If playlistid is empty then update iframe href, otherwise do nothing
+     * * * * `playlistid` - Update iframe href
+     * * * If using Player API:
+     * * * * `videoid` - If playlistid is empty then api.loadVideoById, otherwise do nothing
+     * * * * `playlistid` - If playlist is empty then api.loadVideoById, otherwise api.loadPlaylist
+     */
+
+    // Typically contains the name of a video
+    if (name === 'playlabel') {
+      const defaultLabelText = window.LiteYTEmbedConfig?.playLabel ?? 'Play';
+      this.playLabelText = newValue ?? defaultLabelText;
+
+      // update play button hidden text
+      const playBtnLabelEl = this.querySelector('.lyt-playbtn span');
+      if (playBtnLabelEl != null) {
+        playBtnLabelEl.textContent = this.playLabelText;
+      }
+
+      // update top left title
+      const titleEl = this.querySelector('.lyt-title span');
+      if (titleEl != null) {
+        // don't show default 'Play' as title
+        titleEl.textContent = this.playLabelText !== defaultLabelText ? newValue : '';
+      }
+
+      // update poster alt and title
+      const posterEl = this.querySelector('.lyt-poster');
+      if (posterEl != null) {
+        posterEl.setAttribute('alt', this.playLabelText);
+        posterEl.setAttribute('title', this.playLabelText);
+      }
+
+      // update iframe title
+      const iframe = this.querySelector('iframe');
+      if (iframe != null) {
+        iframe.setAttribute('title', this.playLabelText);
+      }
+
+      return;
+    }
+
+    // 'yes' | 'no' - Shows or hides video title in the top left corner
+    if (name === 'showtitle') {
+      const showTitle = newValue ?? window.LiteYTEmbedConfig?.showTitle ?? 'no';
+      let titleEl = this.querySelector('.lyt-title');
+
+      if (showTitle === 'yes') {
+        // create if doesn't exist
+        if (titleEl == null) {
+          titleEl = document.createElement('div');
+          titleEl.className = 'lyt-title';
+          this.append(titleEl);
+        }
+        let titleTextEl = titleEl.querySelector('span');
+        if (titleTextEl == null) {
+          titleTextEl = document.createElement('span');
+          titleEl.append(titleTextEl);
+        }
+        const defaultLabelText = window.LiteYTEmbedConfig?.playLabel ?? 'Play';
+        // don't show default 'Play' as title
+        titleTextEl.textContent = this.playLabelText !== defaultLabelText ? this.playLabelText : '';
+
+        return;
+      }
+
+      // 'no' - remove if exists
+      if (titleEl != null) {
+        titleEl.remove();
+      }
+
+      return;
+    }
+
+    // YouTube video
+    if (name === 'videoid') {
+      this.videoId = newValue ?? '';
+
+      if (!this.classList.contains('lyt-activated')) {
+        // TODO: no iframe - update poster, restart fallback
+
+        return;
+      }
+
+      // playlist takes priority over video
+      if (this.playlistId !== '' || this.videoId === '') return;
+
+      // load new video
+      this.addIframe(true);
+
+      return;
+    }
+
+    // YouTube playlist
+    if (name === 'playlistid') {
+      this.playlistId = newValue ?? '';
+
+      if (!this.classList.contains('lyt-activated')) {
+        // no iframe - do nothing
+        return;
+      }
+
+      // no playlist and no video = do nothing
+      if (this.playlistId === '' && this.videoId === '') return;
+
+      // load new playlist or video
+      this.addIframe(true);
+
+      return;
+    }
+
+    // Player parameters / playerVars
+    if (name === 'params') {
+      if (!this.classList.contains('lyt-activated')) {
+        // no iframe - do nothing
+        return;
+      }
+
+      // recreate iframe
+      this.api = undefined;
+      this.querySelector('iframe')?.remove();
+      this.addIframe(true);
+
+      return;
+    }
   }
 
   /**
    * Tries to add iframe via DOM manipulations or YouTube API
    */
-  public addIframe(): void {
-    if (this.classList.contains('lyt-activated')) return;
+  public addIframe(force = false): void {
+    if (!force && this.classList.contains('lyt-activated')) return;
     this.classList.add('lyt-activated');
 
     const params = new URLSearchParams(this.getAttribute('params') ?? window.LiteYTEmbedConfig?.params ?? '');
@@ -199,27 +361,36 @@ class LiteYTEmbed extends HTMLElement {
     }
 
     // via DOM
-    const iframeEl = document.createElement('iframe');
-    iframeEl.width = '560';
-    iframeEl.height = '315';
-    iframeEl.title = this.playLabelText;
-    iframeEl.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture';
-    iframeEl.allowFullscreen = true;
-    iframeEl.fetchPriority = 'high';
+    let iframeEl = this.querySelector('iframe');
+    let isNewIframe = false;
+    if (iframeEl == null) {
+      isNewIframe = true;
+      iframeEl = document.createElement('iframe');
+      iframeEl.width = '560';
+      iframeEl.height = '315';
+      iframeEl.title = this.playLabelText;
+      iframeEl.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture';
+      iframeEl.allowFullscreen = true;
+      iframeEl.fetchPriority = 'high';
+      this.append(iframeEl);
+    }
     if (this.playlistId !== '') {
       iframeEl.src = `https://www.youtube-nocookie.com/embed/videoseries?list=${this.playlistId}&${params.toString()}`;
     } else {
       iframeEl.src = `https://www.youtube-nocookie.com/embed/${this.videoId}?${params.toString()}`;
     }
-    this.append(iframeEl);
 
     // Set focus for a11y
     iframeEl.focus();
 
-    this.dispatchEvent(new CustomEvent('ready'));
+    if (isNewIframe) {
+      this.dispatchEvent(new CustomEvent('ready'));
+    }
   }
 
-  // Adds JPG (+ WebP) poster image
+  /**
+   * Adds JPG (+ WebP) poster image
+   */
   private addPoster(): void {
     // TODO: Add fallback for progressively enhanced videos as well
 
@@ -241,6 +412,9 @@ class LiteYTEmbed extends HTMLElement {
      * Anything else is treated like a custom image
      */
     this.webp = this.getAttribute('webp') ?? window.LiteYTEmbedConfig?.webp ?? 'yes';
+
+    // don't create poster if none is specified
+    if (this.videoId === '' && this.jpg === '') return;
 
     // Check if browser supports WebP
     if (LiteYTEmbed.supportsWebp === undefined) {
@@ -396,6 +570,20 @@ class LiteYTEmbed extends HTMLElement {
   private async addYTPlayerIframe(params: URLSearchParams): Promise<void> {
     await this.fetchYTPlayerApi();
 
+    if (this.api) {
+      // Player was already initialized
+      if (this.playlistId === '') {
+        this.api.loadVideoById(this.videoId);
+      } else {
+        this.api.loadPlaylist({
+          list: this.playlistId,
+          listType: 'playlist',
+        });
+      }
+
+      return;
+    }
+
     const videoPlaceholderEl = document.createElement('div');
     this.append(videoPlaceholderEl);
 
@@ -412,11 +600,11 @@ class LiteYTEmbed extends HTMLElement {
       },
     };
 
-    if (this.playlistId !== '') {
+    if (this.playlistId === '') {
+      options.videoId = this.videoId;
+    } else {
       params.append('listType', 'playlist');
       params.append('list', this.playlistId);
-    } else {
-      options.videoId = this.videoId;
     }
 
     options.playerVars = Object.fromEntries(params.entries());

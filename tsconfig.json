@@ -6,6 +6,7 @@
     "lib": ["es2020", "dom", "dom.iterable"],
     "module": "es2020",
     "target": "es2020",
+    "noImplicitAny": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

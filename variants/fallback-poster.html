@@ -8,7 +8,14 @@
 </head>
 <body>
 <h1>Fallback poster</h1>
-<p>This video uses fallback for poster but it may take a while.</p>
+<p>This video uses fallback for poster. It can take a while for YouTube to respond when a requested poster is missing. This is what causes the delay. </p>
+<p>What you're seeing here is the basically the <strong>worst case scenario</strong> because we request `<code>maxres</code>` WebP poster for an old video that doesn't have WebP at all and only has `<code>hqdefault.jpg</code>`.</p>
+<ol>
+    <li>`<code>maxresdefault.webp</code>` is missing -> swtich to `<code>sddefault.webp</code>`</li>
+    <li>`<code>sddefault.webp</code>` is missing -> switch to `<code>hqdefault.webp</code>`</li>
+    <li>`<code>hqdefault.webp</code>` is missing -> switch to `<code>hqdefault.jpg</code>`</li>
+    <li>`<code>hqdefault.jpg</code>` exists</li>
+</ol>
 
 <pre>
 var LiteYTEmbedConfig = {

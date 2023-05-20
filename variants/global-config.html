@@ -15,8 +15,8 @@ var LiteYTEmbedConfig = {
     params: 'controls=0',
     webp: 'no',
     size: 'maxres',
-    playLabel: 'Test 1234',
-    showTitle: true
+    playLabel: 'Play video',
+    showTitle: 'yes'
 };
 </pre>
 
@@ -25,15 +25,18 @@ var LiteYTEmbedConfig = {
     params: 'controls=0',
     webp: 'no',
     size: 'maxres',
-    playLabel: 'Test 1234',
+    playLabel: 'Play video',
     showTitle: 'yes'
 };
 </script>
 
 <h2>Follows default global config</h2>
+
+<p>New default "Play video" is used as the play button hidden text but is not displayed as title.</p>
 <p><lite-youtube videoid="ogfYd705cRs"></lite-youtube></p>
 
 <h2>Partially overrides default global config</h2>
+
 <p><lite-youtube videoid="ogfYd705cRs" webp="yes" size="hq" playlabel="Overridden label"></lite-youtube></p>
 
 
