@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>lite-youtube-embed - No children duplication when moving element</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../dist/lite-yt-embed.min.css" />
+</head>
+<body>
+<h1>No children duplication when moving element</h1>
+
+<p>
+    <button id="move">Re-append</button>
+</p>
+
+<p>
+    Child node count: <span id="children"></span>
+</p>
+
+<p id="video">
+    <lite-youtube videoid="ogfYd705cRs" playlabel="Keynote (Google I/O '18)"></lite-youtube>
+</p>
+
+<script src="../dist/lite-yt-embed.min.js"></script>
+<script>
+    const videoEl = document.querySelector('#video');
+    const liteEl = document.querySelector('lite-youtube');
+    const moveBtn = document.querySelector('#move');
+    const children = document.querySelector('#children');
+
+    children.textContent = liteEl.childNodes.length;
+
+    moveBtn.addEventListener('click', () => {
+        videoEl.appendChild(liteEl);
+        children.textContent = liteEl.childNodes.length;
+    });
+</script>
+
+</body>
+</html>

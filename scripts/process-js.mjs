@@ -32,6 +32,7 @@ for (const path of files) {
     // private properties
     'playLabelText',
     'posterEl',
+    'isInitialized',
   ];
   const manglePropsRegExp = new RegExp(`^(${mangleProps.join('|')})$`);
 

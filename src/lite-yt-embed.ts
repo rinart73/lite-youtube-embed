@@ -48,6 +48,7 @@ class LiteYTEmbed extends HTMLElement {
   public webp: string = '';
   // API Player for this video
   public api?: YT.Player;
+  private isInitialized?: boolean;
   private playLabelText: string = '';
   // Poster img element
   private posterEl?: HTMLImageElement;
@@ -101,6 +102,12 @@ class LiteYTEmbed extends HTMLElement {
    * See: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
    */
   connectedCallback(): void {
+    // connectedCallback may be called once the element is no longer connected, use Node.isConnected to make sure
+    if (!this.isConnected) return;
+
+    // make sure that the element is not being processed more than once
+    if(this.isInitialized === true) return;
+
     // init global config object if it doesn't exist
     window.LiteYTEmbedConfig = window.LiteYTEmbedConfig ?? {};
 
@@ -165,6 +172,8 @@ class LiteYTEmbed extends HTMLElement {
         window.LiteYTEmbedConfig.forceApi ??
         (navigator.vendor.includes('Apple') || navigator.userAgent.includes('Mobi'));
     }
+
+    this.isInitialized = true;
   }
 
   /**
@@ -214,21 +223,21 @@ class LiteYTEmbed extends HTMLElement {
   private addPoster(): void {
     // TODO: Add fallback for progressively enhanced videos as well
 
-    if (this.querySelector('.lyt-preview-container') != null) {
-      // Preview was added manually, don't override
+    if (this.querySelector('.lyt-poster-container') != null) {
+      // Poster was added manually, don't override
       return;
     }
 
     this.size = this.getAttribute('size') ?? window.LiteYTEmbedConfig?.size ?? 'hq';
-    // validate preview size
+    // validate poster size
     if (!['mq', 'hq', 'sd', 'maxres'].includes(this.size)) return;
 
-    // Custom jpg preview
+    // Custom jpg poster
     this.jpg = this.getAttribute('jpg') ?? '';
 
     /**
      * 'yes' - default YouTube image
-     * 'no' - typically used if YouTube has no preview for this video
+     * 'no' - typically used if YouTube has no poster for this video
      * Anything else is treated like a custom image
      */
     this.webp = this.getAttribute('webp') ?? window.LiteYTEmbedConfig?.webp ?? 'yes';
