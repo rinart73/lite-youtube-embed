@@ -46,6 +46,7 @@
     "cleanup": "node ./scripts/cleanup.mjs",
     "css": "node ./scripts/process-css.mjs",
     "js": "node ./scripts/process-js.mjs",
-    "build": "npm run cleanup && tsc && npm run css && npm run js"
+    "build": "npm run cleanup && tsc && npm run css && npm run js",
+    "lint": "eslint --ext .ts ./src"
   }
 }

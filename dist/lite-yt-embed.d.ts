@@ -35,13 +35,32 @@ declare class LiteYTEmbed extends HTMLElement {
     private static usesApi?;
     videoId: string;
     playlistId: string;
+    /**
+     * YouTube poster size
+     */
     size: string;
+    /**
+     * Custom JPG poster
+     */
     jpg: string;
+    /**
+     * WebP poster toggle or custom WebP poster
+     */
     webp: string;
+    /**
+     * API Player instance
+     */
     api?: YT.Player;
     private isInitialized?;
     private playLabelText;
+    /**
+     * Poster img element
+     */
     private posterEl?;
+    /**
+     * Returns an array of attribute names that should be observed for change
+     */
+    static get observedAttributes(): string[];
     private static checkWebpSupport;
     /**
      * Begin pre-connecting to warm up the iframe load
@@ -63,9 +82,16 @@ declare class LiteYTEmbed extends HTMLElement {
      */
     connectedCallback(): void;
     /**
+     * Run whenever one of the element's attributes is changed in some way
+     */
+    attributeChangedCallback(name: string, oldValue: string, newValue: string): void;
+    /**
      * Tries to add iframe via DOM manipulations or YouTube API
      */
-    addIframe(): void;
+    addIframe(force?: boolean): void;
+    /**
+     * Adds JPG (+ WebP) poster image
+     */
     private addPoster;
     private setPosterDimensions;
     private tryDownscalingSize;

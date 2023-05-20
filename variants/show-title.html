@@ -10,9 +10,28 @@
 <h1>Show title</h1>
 <p>Show video title like YouTube does.</p>
 
-<lite-youtube videoid="ogfYd705cRs" playlabel="Keynote (Google I/O '18)" showtitle="yes"></lite-youtube>
+<p><lite-youtube videoid="ogfYd705cRs" playlabel="Keynote (Google I/O '18)" showtitle="yes"></lite-youtube></p>
+
+<p>
+    <label>New label: <input id="newLabel" value="Keynote (Google I/O '18)" /></label>
+    <button id="toggleTitle">Toggle title</button>
+</p>
 
 <script src="../dist/lite-yt-embed.min.js"></script>
+
+<script>
+    const liteYoutube = document.querySelector('lite-youtube');
+    const newLabel = document.querySelector('#newLabel');
+    const toggleTitle = document.querySelector('#toggleTitle');
+
+    newLabel.addEventListener('input', function() {
+        liteYoutube.setAttribute('playlabel', this.value);
+    });
+
+    toggleTitle.addEventListener('click', () => {
+        liteYoutube.setAttribute('showtitle', liteYoutube.getAttribute('showtitle') === 'yes' ? 'no' : 'yes');
+    });
+</script>
 
 </body>
 </html>
