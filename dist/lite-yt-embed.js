@@ -19,7 +19,7 @@ class LiteYTEmbed extends HTMLElement {
         /**
          * YouTube poster size
          */
-        this.size = '';
+        this.posterSize = '';
         /**
          * Custom JPG poster
          */
@@ -55,23 +55,21 @@ class LiteYTEmbed extends HTMLElement {
     static warmConnections() {
         if (LiteYTEmbed.preconnected)
             return;
-        // The iframe document and most of its subresources come right off youtube.com
-        LiteYTEmbed.addPrefetch('preconnect', 'https://www.youtube-nocookie.com');
-        // The botguard script is fetched off from google.com
-        LiteYTEmbed.addPrefetch('preconnect', 'https://www.google.com');
-        // Not certain if these ad related domains are in the critical path. Could verify with domain-specific throttling.
-        LiteYTEmbed.addPrefetch('preconnect', 'https://googleads.g.doubleclick.net');
-        LiteYTEmbed.addPrefetch('preconnect', 'https://static.doubleclick.net');
+        [
+            // The iframe document and most of its subresources come right off youtube.com
+            'https://www.youtube-nocookie.com',
+            // The botguard script is fetched off from google.com
+            'https://www.google.com',
+            // Not certain if these ad related domains are in the critical path. Could verify with domain-specific throttling
+            'https://googleads.g.doubleclick.net',
+            'https://static.doubleclick.net',
+        ].forEach((url) => {
+            const linkEl = document.createElement('link');
+            linkEl.rel = 'preconnect';
+            linkEl.href = url;
+            document.head.append(linkEl);
+        });
         LiteYTEmbed.preconnected = true;
-    }
-    /**
-     * Add a <link rel={preload | preconnect} ...> to the head
-     */
-    static addPrefetch(kind, url) {
-        const linkEl = document.createElement('link');
-        linkEl.rel = kind;
-        linkEl.href = url;
-        document.head.append(linkEl);
     }
     /**
      * Invoked each time the custom element is appended into a document-connected element
@@ -86,6 +84,10 @@ class LiteYTEmbed extends HTMLElement {
             return;
         // init global config object if it doesn't exist
         window.LiteYTEmbedConfig = window.LiteYTEmbedConfig ?? {};
+        // Check if browser supports WebP
+        if (LiteYTEmbed.supportsWebp === undefined) {
+            LiteYTEmbed.supportsWebp = LiteYTEmbed.checkWebpSupport();
+        }
         this.videoId = this.getAttribute('videoid') ?? '';
         this.playlistId = this.getAttribute('playlistid') ?? '';
         // Set up play button, and its visually hidden label
@@ -317,9 +319,9 @@ class LiteYTEmbed extends HTMLElement {
             // Poster was added manually, don't override
             return;
         }
-        this.size = this.getAttribute('size') ?? window.LiteYTEmbedConfig?.size ?? 'hq';
+        this.posterSize = this.getAttribute('size') ?? window.LiteYTEmbedConfig?.size ?? 'hq';
         // validate poster size
-        if (!['mq', 'hq', 'sd', 'maxres'].includes(this.size))
+        if (!['mq', 'hq', 'sd', 'maxres'].includes(this.posterSize))
             return;
         // Custom jpg poster
         this.jpg = this.getAttribute('jpg') ?? '';
@@ -332,10 +334,6 @@ class LiteYTEmbed extends HTMLElement {
         // don't create poster if none is specified
         if (this.videoId === '' && this.jpg === '')
             return;
-        // Check if browser supports WebP
-        if (LiteYTEmbed.supportsWebp === undefined) {
-            LiteYTEmbed.supportsWebp = LiteYTEmbed.checkWebpSupport();
-        }
         if (!LiteYTEmbed.supportsWebp) {
             this.webp = 'no';
         }
@@ -345,14 +343,14 @@ class LiteYTEmbed extends HTMLElement {
         if (this.webp !== 'no') {
             const source = document.createElement('source');
             source.setAttribute('type', 'image/webp');
-            source.setAttribute('srcset', this.webp === 'yes' ? `https://i.ytimg.com/vi_webp/${this.videoId}/${this.size}default.webp` : this.webp);
+            source.setAttribute('srcset', this.webp === 'yes' ? `https://i.ytimg.com/vi_webp/${this.videoId}/${this.posterSize}default.webp` : this.webp);
             posterContainer.appendChild(source);
         }
         this.posterEl = document.createElement('img');
         this.posterEl.setAttribute('decoding', 'async');
         this.posterEl.setAttribute('loading', 'lazy');
         this.setPosterDimensions();
-        this.posterEl.setAttribute('src', this.jpg !== '' ? this.jpg : `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
+        this.posterEl.setAttribute('src', this.jpg !== '' ? this.jpg : `https://i.ytimg.com/vi/${this.videoId}/${this.posterSize}default.jpg`);
         this.posterEl.setAttribute('alt', this.playLabelText);
         this.posterEl.setAttribute('title', this.playLabelText);
         this.posterEl.className = 'lyt-poster';
@@ -367,12 +365,12 @@ class LiteYTEmbed extends HTMLElement {
             this.posterEl.addEventListener('error', this.onPosterError);
         }
         posterContainer.appendChild(this.posterEl);
-        this.insertBefore(posterContainer, this.firstChild);
+        this.append(posterContainer);
     }
     // Sets poster image dimensions based on 'size' attribute
     setPosterDimensions() {
         let width, height;
-        switch (this.size) {
+        switch (this.posterSize) {
             case 'mq':
                 width = 320;
                 height = 180;
@@ -395,12 +393,12 @@ class LiteYTEmbed extends HTMLElement {
         this.posterEl?.setAttribute('height', height.toString());
     }
     tryDownscalingSize() {
-        switch (this.size) {
+        switch (this.posterSize) {
             case 'maxres':
-                this.size = 'sd';
+                this.posterSize = 'sd';
                 return true;
             case 'sd':
-                this.size = 'hq';
+                this.posterSize = 'hq';
                 return true;
         }
         /**
@@ -424,32 +422,32 @@ class LiteYTEmbed extends HTMLElement {
             if (this.webp !== 'yes') {
                 // invalid custom WebP image, fallback to default
                 this.webp = 'yes';
-                source.setAttribute('srcset', `https://i.ytimg.com/vi_webp/${this.videoId}/${this.size}default.webp`);
+                source.setAttribute('srcset', `https://i.ytimg.com/vi_webp/${this.videoId}/${this.posterSize}default.webp`);
                 return;
             }
             // invalid default WebP image, downscale
             if (this.tryDownscalingSize()) {
                 this.setPosterDimensions();
-                source.setAttribute('srcset', `https://i.ytimg.com/vi_webp/${this.videoId}/${this.size}default.webp`);
+                source.setAttribute('srcset', `https://i.ytimg.com/vi_webp/${this.videoId}/${this.posterSize}default.webp`);
                 return;
             }
             // nowhere to downscale, WebP likely doesn't exist
             source.remove();
             this.webp = 'no';
-            this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
+            this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.posterSize}default.jpg`);
             return;
         }
         // working with jpg
         if (this.jpg !== '') {
             // incorrect custom JPG image, fallback to default
             this.jpg = '';
-            this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
+            this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.posterSize}default.jpg`);
             return;
         }
         // invalid default JPG image, downscale
         if (this.tryDownscalingSize()) {
             this.setPosterDimensions();
-            this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
+            this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.posterSize}default.jpg`);
         }
         // nowhere to downscale, ignore
         // ? Perhaps allow to set custom final fallback image

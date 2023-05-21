@@ -33,6 +33,11 @@ for (const path of files) {
     'playLabelText',
     'posterEl',
     'isInitialized',
+    'videoId',
+    'playlistId',
+    'posterSize',
+    'jpg',
+    'webp',
   ];
   const manglePropsRegExp = new RegExp(`^(${mangleProps.join('|')})$`);
 

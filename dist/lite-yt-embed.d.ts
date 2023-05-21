@@ -33,24 +33,24 @@ declare class LiteYTEmbed extends HTMLElement {
     private static supportsWebp?;
     private static preconnected;
     private static usesApi?;
-    videoId: string;
-    playlistId: string;
-    /**
-     * YouTube poster size
-     */
-    size: string;
-    /**
-     * Custom JPG poster
-     */
-    jpg: string;
-    /**
-     * WebP poster toggle or custom WebP poster
-     */
-    webp: string;
     /**
      * API Player instance
      */
     api?: YT.Player;
+    private videoId;
+    private playlistId;
+    /**
+     * YouTube poster size
+     */
+    private posterSize;
+    /**
+     * Custom JPG poster
+     */
+    private jpg;
+    /**
+     * WebP poster toggle or custom WebP poster
+     */
+    private webp;
     private isInitialized?;
     private playLabelText;
     /**
@@ -72,10 +72,6 @@ declare class LiteYTEmbed extends HTMLElement {
      * But TBH, I don't think it'll happen soon with Site Isolation and split caches adding serious complexity.
      */
     private static warmConnections;
-    /**
-     * Add a <link rel={preload | preconnect} ...> to the head
-     */
-    private static addPrefetch;
     /**
      * Invoked each time the custom element is appended into a document-connected element
      * See: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements

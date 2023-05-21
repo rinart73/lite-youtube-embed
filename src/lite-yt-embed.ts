@@ -38,24 +38,24 @@ class LiteYTEmbed extends HTMLElement {
   private static preconnected = false;
   private static usesApi?: boolean;
 
-  public videoId = '';
-  public playlistId = '';
-  /**
-   * YouTube poster size
-   */
-  public size = '';
-  /**
-   * Custom JPG poster
-   */
-  public jpg = '';
-  /**
-   * WebP poster toggle or custom WebP poster
-   */
-  public webp = '';
   /**
    * API Player instance
    */
   public api?: YT.Player;
+  private videoId = '';
+  private playlistId = '';
+  /**
+   * YouTube poster size
+   */
+  private posterSize = '';
+  /**
+   * Custom JPG poster
+   */
+  private jpg = '';
+  /**
+   * WebP poster toggle or custom WebP poster
+   */
+  private webp = '';
   private isInitialized?: boolean;
   private playLabelText = '';
   /**
@@ -92,26 +92,22 @@ class LiteYTEmbed extends HTMLElement {
   private static warmConnections(): void {
     if (LiteYTEmbed.preconnected) return;
 
-    // The iframe document and most of its subresources come right off youtube.com
-    LiteYTEmbed.addPrefetch('preconnect', 'https://www.youtube-nocookie.com');
-    // The botguard script is fetched off from google.com
-    LiteYTEmbed.addPrefetch('preconnect', 'https://www.google.com');
-
-    // Not certain if these ad related domains are in the critical path. Could verify with domain-specific throttling.
-    LiteYTEmbed.addPrefetch('preconnect', 'https://googleads.g.doubleclick.net');
-    LiteYTEmbed.addPrefetch('preconnect', 'https://static.doubleclick.net');
+    [
+      // The iframe document and most of its subresources come right off youtube.com
+      'https://www.youtube-nocookie.com',
+      // The botguard script is fetched off from google.com
+      'https://www.google.com',
+      // Not certain if these ad related domains are in the critical path. Could verify with domain-specific throttling
+      'https://googleads.g.doubleclick.net',
+      'https://static.doubleclick.net',
+    ].forEach((url) => {
+      const linkEl = document.createElement('link');
+      linkEl.rel = 'preconnect';
+      linkEl.href = url;
+      document.head.append(linkEl);
+    });
 
     LiteYTEmbed.preconnected = true;
-  }
-
-  /**
-   * Add a <link rel={preload | preconnect} ...> to the head
-   */
-  private static addPrefetch(kind: string, url: string): void {
-    const linkEl = document.createElement('link');
-    linkEl.rel = kind;
-    linkEl.href = url;
-    document.head.append(linkEl);
   }
 
   /**
@@ -127,6 +123,11 @@ class LiteYTEmbed extends HTMLElement {
 
     // init global config object if it doesn't exist
     window.LiteYTEmbedConfig = window.LiteYTEmbedConfig ?? {};
+
+    // Check if browser supports WebP
+    if (LiteYTEmbed.supportsWebp === undefined) {
+      LiteYTEmbed.supportsWebp = LiteYTEmbed.checkWebpSupport();
+    }
 
     this.videoId = this.getAttribute('videoid') ?? '';
     this.playlistId = this.getAttribute('playlistid') ?? '';
@@ -399,9 +400,9 @@ class LiteYTEmbed extends HTMLElement {
       return;
     }
 
-    this.size = this.getAttribute('size') ?? window.LiteYTEmbedConfig?.size ?? 'hq';
+    this.posterSize = this.getAttribute('size') ?? window.LiteYTEmbedConfig?.size ?? 'hq';
     // validate poster size
-    if (!['mq', 'hq', 'sd', 'maxres'].includes(this.size)) return;
+    if (!['mq', 'hq', 'sd', 'maxres'].includes(this.posterSize)) return;
 
     // Custom jpg poster
     this.jpg = this.getAttribute('jpg') ?? '';
@@ -416,10 +417,6 @@ class LiteYTEmbed extends HTMLElement {
     // don't create poster if none is specified
     if (this.videoId === '' && this.jpg === '') return;
 
-    // Check if browser supports WebP
-    if (LiteYTEmbed.supportsWebp === undefined) {
-      LiteYTEmbed.supportsWebp = LiteYTEmbed.checkWebpSupport();
-    }
     if (!LiteYTEmbed.supportsWebp) {
       this.webp = 'no';
     }
@@ -433,7 +430,7 @@ class LiteYTEmbed extends HTMLElement {
       source.setAttribute('type', 'image/webp');
       source.setAttribute(
         'srcset',
-        this.webp === 'yes' ? `https://i.ytimg.com/vi_webp/${this.videoId}/${this.size}default.webp` : this.webp,
+        this.webp === 'yes' ? `https://i.ytimg.com/vi_webp/${this.videoId}/${this.posterSize}default.webp` : this.webp,
       );
       posterContainer.appendChild(source);
     }
@@ -446,7 +443,7 @@ class LiteYTEmbed extends HTMLElement {
 
     this.posterEl.setAttribute(
       'src',
-      this.jpg !== '' ? this.jpg : `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`,
+      this.jpg !== '' ? this.jpg : `https://i.ytimg.com/vi/${this.videoId}/${this.posterSize}default.jpg`,
     );
     this.posterEl.setAttribute('alt', this.playLabelText);
     this.posterEl.setAttribute('title', this.playLabelText);
@@ -468,13 +465,13 @@ class LiteYTEmbed extends HTMLElement {
 
     posterContainer.appendChild(this.posterEl);
 
-    this.insertBefore(posterContainer, this.firstChild);
+    this.append(posterContainer);
   }
 
   // Sets poster image dimensions based on 'size' attribute
   private setPosterDimensions(): void {
     let width, height;
-    switch (this.size) {
+    switch (this.posterSize) {
       case 'mq':
         width = 320;
         height = 180;
@@ -498,12 +495,12 @@ class LiteYTEmbed extends HTMLElement {
   }
 
   private tryDownscalingSize(): boolean {
-    switch (this.size) {
+    switch (this.posterSize) {
       case 'maxres':
-        this.size = 'sd';
+        this.posterSize = 'sd';
         return true;
       case 'sd':
-        this.size = 'hq';
+        this.posterSize = 'hq';
         return true;
     }
     /**
@@ -530,21 +527,21 @@ class LiteYTEmbed extends HTMLElement {
       if (this.webp !== 'yes') {
         // invalid custom WebP image, fallback to default
         this.webp = 'yes';
-        source.setAttribute('srcset', `https://i.ytimg.com/vi_webp/${this.videoId}/${this.size}default.webp`);
+        source.setAttribute('srcset', `https://i.ytimg.com/vi_webp/${this.videoId}/${this.posterSize}default.webp`);
         return;
       }
 
       // invalid default WebP image, downscale
       if (this.tryDownscalingSize()) {
         this.setPosterDimensions();
-        source.setAttribute('srcset', `https://i.ytimg.com/vi_webp/${this.videoId}/${this.size}default.webp`);
+        source.setAttribute('srcset', `https://i.ytimg.com/vi_webp/${this.videoId}/${this.posterSize}default.webp`);
         return;
       }
 
       // nowhere to downscale, WebP likely doesn't exist
       source.remove();
       this.webp = 'no';
-      this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
+      this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.posterSize}default.jpg`);
       return;
     }
 
@@ -553,14 +550,14 @@ class LiteYTEmbed extends HTMLElement {
     if (this.jpg !== '') {
       // incorrect custom JPG image, fallback to default
       this.jpg = '';
-      this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
+      this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.posterSize}default.jpg`);
       return;
     }
 
     // invalid default JPG image, downscale
     if (this.tryDownscalingSize()) {
       this.setPosterDimensions();
-      this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.size}default.jpg`);
+      this.posterEl?.setAttribute('src', `https://i.ytimg.com/vi/${this.videoId}/${this.posterSize}default.jpg`);
     }
 
     // nowhere to downscale, ignore
