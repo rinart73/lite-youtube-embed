@@ -33,7 +33,7 @@ for (const path of files) {
     'playLabelText',
     'posterEl',
     'isInitialized',
-    'videoId',
+    //'videoId',
     'playlistId',
     'posterSize',
     'jpg',
